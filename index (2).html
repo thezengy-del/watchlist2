@@ -1,0 +1,2473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watchlist</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&display=swap');
+
+:root {
+  --bg:        #07090f;
+  --surface:   #0d1018;
+  --s2:        #131720;
+  --s3:        #191e28;
+  --border:    #1f2736;
+  --border2:   #28334a;
+  --text:      #e6ecf8;
+  --text2:     #8a9bbf;
+  --text3:     #4a5875;
+  --green:     #34d399;
+  --green-bg:  rgba(52,211,153,.09);
+  --green-bd:  rgba(52,211,153,.22);
+  --red:       #f87171;
+  --red-bg:    rgba(248,113,113,.09);
+  --red-bd:    rgba(248,113,113,.22);
+  --amber:     #fbbf24;
+  --amber-bg:  rgba(251,191,36,.09);
+  --amber-bd:  rgba(251,191,36,.22);
+  --blue:      #60a5fa;
+  --blue-bg:   rgba(96,165,250,.09);
+  --blue-bd:   rgba(96,165,250,.22);
+  --purple:    #a78bfa;
+  --cyan:      #22d3ee;
+  --gold:      #f0c040;
+  --wait-bg:   rgba(167,139,250,.09);
+  --wait-bd:   rgba(167,139,250,.22);
+}
+
+/* ── LIGHT MODE OVERRIDES (Claude beige) ──────────────────────────── */
+:root[data-theme="light"] {
+  --bg:        #f5f0e8;        /* Claude signature beige */
+  --surface:   #faf8f3;        /* slightly lighter card surface */
+  --s2:        #efeae0;        /* soft sand for secondary */
+  --s3:        #e9e3d5;        /* tertiary surface / inputs */
+  --border:    #d9d1bf;        /* warm tan border */
+  --border2:   #c5bba4;        /* stronger border */
+  --text:      #2a2418;        /* deep warm charcoal */
+  --text2:     #5c5240;        /* secondary text */
+  --text3:     #8a7f6a;        /* tertiary / muted */
+  --green:     #16794d;        /* deeper green legible on cream */
+  --green-bg:  rgba(22,121,77,.10);
+  --green-bd:  rgba(22,121,77,.28);
+  --red:       #b3261e;        /* warm crimson */
+  --red-bg:    rgba(179,38,30,.09);
+  --red-bd:    rgba(179,38,30,.26);
+  --amber:     #a36b00;        /* burnt amber */
+  --amber-bg:  rgba(163,107,0,.10);
+  --amber-bd:  rgba(163,107,0,.28);
+  --blue:      #1f5fb8;        /* navy-leaning blue */
+  --blue-bg:   rgba(31,95,184,.09);
+  --blue-bd:   rgba(31,95,184,.26);
+  --purple:    #6b4ea8;
+  --cyan:      #0e7a8a;        /* deep teal — readable on beige */
+  --gold:      #8a6a00;
+  --wait-bg:   rgba(107,78,168,.09);
+  --wait-bd:   rgba(107,78,168,.26);
+}
+
+/* ── LIGHT MODE: defensive container overrides ────────────────────── */
+:root[data-theme="light"] body { background:var(--bg) !important; color:var(--text); }
+:root[data-theme="light"] html { background:var(--bg); }
+:root[data-theme="light"] .table-wrap { background:var(--bg); }
+:root[data-theme="light"] table,
+:root[data-theme="light"] thead,
+:root[data-theme="light"] tbody,
+:root[data-theme="light"] tr { background:transparent !important; }
+:root[data-theme="light"] td,
+:root[data-theme="light"] th { background-color:transparent; color:var(--text); }
+:root[data-theme="light"] th { color:var(--text3); }
+:root[data-theme="light"] tbody tr:hover { background:var(--s2) !important; }
+:root[data-theme="light"] tbody tr:hover td { background:var(--s2) !important; }
+:root[data-theme="light"] thead tr { border-bottom-color:var(--border2); }
+:root[data-theme="light"] tbody tr { border-bottom:1px solid var(--border); }
+
+/* Ensure modal overlay inherits light theme too */
+:root[data-theme="light"] .modal-overlay { background:rgba(60,50,30,.55); }
+:root[data-theme="light"] .card-shell { background:var(--surface); color:var(--text); }
+
+/* Inputs / search / paste field — readable on cream */
+:root[data-theme="light"] input,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select { background:var(--s3) !important; color:var(--text) !important; border-color:var(--border2) !important; }
+:root[data-theme="light"] input::placeholder,
+:root[data-theme="light"] textarea::placeholder { color:var(--text3) !important; }
+
+/* Print-style override: keep print white as before regardless of theme */
+*{margin:0;padding:0;box-sizing:border-box}
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ════════════════════════════════
+   WATCHLIST TABLE
+════════════════════════════════ */
+.page-header {
+  padding:20px 28px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--surface);
+}
+.page-title { font-family:'Instrument Serif',serif; font-size:22px; font-style:italic; color:var(--text); }
+.page-sub   { font-size:11px; color:var(--text3); font-family:'DM Mono',monospace; margin-top:2px; }
+.header-stats { display:flex; gap:20px; }
+.stat-item { text-align:center; }
+.stat-val  { font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--text); }
+.stat-lbl  { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-top:1px; }
+
+/* ── WATCHLIST PRIORITY BADGE ── */
+.priority-select-wrap { display:flex; align-items:center; gap:8px; }
+.priority-select-wrap label { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
+.priority-select {
+  font-family:'DM Mono',monospace; font-size:11px; font-weight:600;
+  padding:5px 28px 5px 10px; border-radius:5px; border:1.5px solid var(--border2);
+  background:var(--s3); color:var(--text); cursor:pointer; outline:none;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5875' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center;
+  transition:border-color .15s;
+}
+.priority-select:hover, .priority-select:focus { border-color:var(--cyan); }
+.priority-select option { background:var(--s2); color:var(--text); }
+/* Priority badge pill on table rows */
+.prio-pill {
+  font-size:8px; font-weight:700; letter-spacing:.07em; padding:2px 7px;
+  border-radius:3px; text-transform:uppercase; white-space:nowrap;
+}
+.prio-pill.bought     { background:rgba(52,211,153,.13); color:var(--green);  border:1px solid rgba(52,211,153,.3); }
+.prio-pill.watchlist  { background:rgba(96,165,250,.13);  color:var(--blue);   border:1px solid rgba(96,165,250,.3); }
+.prio-pill.backburner { background:var(--s3);             color:var(--text3);  border:1px solid var(--border); }
+
+/* Inline priority select dropdown styled as pill */
+select.prio-pill {
+  font-family:'DM Mono',monospace; font-size:8px; font-weight:700; letter-spacing:.07em;
+  padding:2px 18px 2px 7px; border-radius:3px; text-transform:uppercase;
+  cursor:pointer; outline:none; appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%234a5875' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 5px center;
+}
+select.prio-pill option { background:var(--s2); color:var(--text); text-transform:none; font-weight:400; }
+
+
+.table-wrap { padding:20px 28px; }
+
+table { width:100%; border-collapse:collapse; }
+thead tr { border-bottom:2px solid var(--border2); }
+th {
+  font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--text3); padding:8px 12px; text-align:left; white-space:nowrap;
+}
+tbody tr {
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background .12s;
+}
+tbody tr:hover { background:var(--s2); }
+td { padding:11px 12px; font-size:12px; vertical-align:middle; }
+
+/* action border on left of row */
+tbody tr.BUY  td:first-child  { border-left:3px solid var(--green); }
+tbody tr.HOLD td:first-child  { border-left:3px solid var(--amber); }
+tbody tr.WAIT td:first-child  { border-left:3px solid var(--purple); }
+tbody tr.SELL td:first-child  { border-left:3px solid var(--red); }
+
+.ticker-cell { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--text); }
+.name-cell   { color:var(--text2); font-size:13px; max-width:160px; }
+.sector-chip {
+  font-size:9px; font-weight:600; letter-spacing:.06em; padding:2px 7px; border-radius:3px;
+  background:var(--s3); color:var(--text3); border:1px solid var(--border);
+  white-space:nowrap;
+}
+.thead-groups th { padding:3px 10px 0; font-size:0; border-bottom:none; }
+.col-group-label {
+  font-size:8px !important; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text3); text-align:center; border-bottom:1px solid var(--border2);
+  padding-bottom:3px !important;
+}
+.rating-badge {
+  font-size:9px; font-weight:700; letter-spacing:.08em; padding:3px 8px; border-radius:3px;
+  white-space:nowrap;
+}
+.rating-badge.BUY  { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bd); }
+.rating-badge.HOLD { background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); }
+.rating-badge.WAIT { background:var(--wait-bg);  color:var(--purple);border:1px solid var(--wait-bd);  }
+.rating-badge.SELL { background:var(--red-bg);   color:var(--red);   border:1px solid var(--red-bd);   }
+
+.price-mono  { font-family:'DM Mono',monospace; font-size:13px; }
+.upside-pos  { color:var(--green); font-family:'DM Mono',monospace; font-size:12px; font-weight:600; }
+.upside-neg  { color:var(--red);   font-family:'DM Mono',monospace; font-size:12px; font-weight:600; }
+
+.px-chg-pos  { color:var(--green); font-family:'DM Mono',monospace; font-size:12px; font-weight:600; }
+.px-chg-neg  { color:var(--red);   font-family:'DM Mono',monospace; font-size:12px; font-weight:600; }
+.px-chg-nil  { color:var(--text3); font-family:'DM Mono',monospace; font-size:12px; }
+.ref-mono    { font-family:'DM Mono',monospace; font-size:13px; color:var(--text3); font-weight:400; }
+
+.w52-bar-wrap  { display:inline-block; position:relative; width:76px; padding-bottom:14px; }
+.w52-track     { position:relative; width:76px; height:6px; border-radius:3px; background:var(--s3); border:1px solid var(--border); }
+.w52-slider-dot{ position:absolute; top:50%; width:11px; height:11px; border-radius:50%; border:2px solid var(--bg); transform:translate(-50%,-50%); z-index:2; pointer-events:none; }
+.w52-pct       { position:absolute; bottom:0; font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); transform:translateX(-50%); white-space:nowrap; }
+
+.sq-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'DM Mono',monospace; font-size:11px;
+}
+.sq-dot { width:8px; height:8px; border-radius:50%; }
+
+.stale-chip {
+  font-size:8px; font-weight:700; letter-spacing:.07em; padding:2px 6px; border-radius:3px;
+  background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); text-transform:uppercase;
+}
+.memo-ok { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
+
+/* sortable column headers */
+th.sortable { cursor:pointer; user-select:none; }
+th.sortable:hover { color:var(--text2); background:var(--s2); }
+.sort-icon { font-size:9px; opacity:.5; margin-left:3px; }
+
+/* entry proximity flags */
+.entry-flag { font-family:'DM Mono',monospace; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px; white-space:nowrap; }
+.entry-flag.at-entry    { color:var(--green); background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.3); }
+.entry-flag.near-entry  { color:var(--amber); background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.3); }
+.entry-flag.above-entry { color:var(--text3); background:transparent; border:none; }
+
+/* refresh all animation */
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.spin-anim { animation:spin 1s linear infinite; display:inline-block; }
+
+.open-btn {
+  font-size:10px; font-weight:600; letter-spacing:.06em; padding:4px 10px;
+  background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue-bd);
+  border-radius:4px; cursor:pointer; text-transform:uppercase; white-space:nowrap;
+  transition:background .15s;
+}
+.open-btn:hover { background:rgba(96,165,250,.16); }
+
+/* ════════════════════════════════
+   MODAL OVERLAY
+════════════════════════════════ */
+.modal-overlay {
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.75);
+  z-index:1000;
+  overflow-y:auto;
+  padding:20px;
+}
+.modal-overlay.open { display:flex; justify-content:center; align-items:flex-start; }
+
+.modal-close-bg {
+  position:fixed; inset:0; z-index:1001; cursor:pointer;
+}
+
+.card-shell {
+  position:relative; z-index:1002;
+  width:100%; max-width:1340px;
+  border-radius:10px;
+  overflow:hidden;
+  border:1.5px solid var(--border2);
+  box-shadow:0 0 0 1px rgba(96,165,250,.04), 0 24px 80px rgba(0,0,0,.7);
+  background:var(--bg);
+  margin:auto;
+}
+.card-shell.BUY  { border-color:#34d39966; }
+.card-shell.HOLD { border-color:#fbbf2466; }
+.card-shell.WAIT { border-color:#a78bfa66; }
+.card-shell.SELL { border-color:#f8717166; }
+
+/* ── ACTION HEADER ───────────────────────────────── */
+.action-header {
+  padding:13px 22px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border-bottom:1px solid var(--border);
+  background:var(--s2);
+}
+.action-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.action-badge {
+  font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:.12em;
+  text-transform:uppercase; padding:5px 14px; border-radius:4px; border:1.5px solid; flex-shrink:0;
+}
+.action-badge.BUY  { background:var(--green-bg); color:var(--green); border-color:var(--green-bd); }
+.action-badge.HOLD { background:var(--amber-bg); color:var(--amber); border-color:var(--amber-bd); }
+.action-badge.WAIT { background:var(--wait-bg);  color:var(--purple);border-color:var(--wait-bd);  }
+.action-badge.SELL { background:var(--red-bg);   color:var(--red);   border-color:var(--red-bd);   }
+.action-instruction { font-size:13px; font-weight:600; color:var(--text); }
+.action-trigger     { font-size:11px; color:var(--text3); font-family:'DM Mono',monospace; margin-top:2px; }
+
+.header-right { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.stale-badge  {
+  font-size:10px; font-weight:600; letter-spacing:.08em; padding:3px 9px;
+  border-radius:3px; text-transform:uppercase;
+}
+.stale-badge.fresh  { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bd); }
+.stale-badge.recent { background:var(--s3); color:var(--text3); border:1px solid var(--border); }
+.stale-badge.old    { background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); }
+.stale-badge.stale  { background:var(--red-bg); color:var(--red); border:1px solid var(--red-bd); }
+
+/* score cluster */
+.score-cluster { display:flex; align-items:center; gap:8px; }
+.score-box { text-align:center; }
+.score-val { font-family:'DM Mono',monospace; font-size:18px; font-weight:500; line-height:1; }
+.score-lbl { font-size:8px; letter-spacing:.1em; color:var(--text3); text-transform:uppercase; margin-top:2px; }
+.score-divider { width:1px; height:30px; background:var(--border2); }
+
+.refresh-btn {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 14px; background:var(--blue-bg); border:1px solid var(--blue-bd);
+  border-radius:5px; color:var(--blue); cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; transition:all .15s; white-space:nowrap;
+}
+.refresh-btn:hover { background:rgba(96,165,250,.16); }
+.refresh-btn.loading { opacity:.6; pointer-events:none; }
+.refresh-btn.loading svg { animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.pdf-btn {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 14px; background:rgba(240,192,64,.08); border:1px solid rgba(240,192,64,.25);
+  border-radius:5px; color:var(--gold); cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; transition:all .15s; white-space:nowrap;
+}
+.pdf-btn:hover { background:rgba(240,192,64,.15); }
+
+.close-card-btn {
+  display:flex; align-items:center; justify-content:center;
+  width:30px; height:30px; border-radius:5px; background:var(--s3); border:1px solid var(--border2);
+  color:var(--text3); cursor:pointer; font-size:18px; line-height:1; transition:all .15s;
+  flex-shrink:0;
+}
+.close-card-btn:hover { background:var(--red-bg); color:var(--red); border-color:var(--red-bd); }
+
+.last-refreshed { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; text-align:right; }
+
+/* thesis banner */
+.thesis-banner {
+  display:none; padding:8px 22px; font-size:12px; font-weight:600;
+  letter-spacing:.06em; text-align:center; border-bottom:1px solid;
+}
+.thesis-banner.INTACT      { background:var(--green-bg); color:var(--green); border-color:var(--green-bd); display:block; }
+.thesis-banner.WEAKENED    { background:var(--amber-bg); color:var(--amber); border-color:var(--amber-bd); display:block; }
+.thesis-banner.STRENGTHENED{ background:var(--blue-bg);  color:var(--blue);  border-color:var(--blue-bd);  display:block; }
+.thesis-banner.BROKEN      { background:var(--red-bg);   color:var(--red);   border-color:var(--red-bd);   display:block; }
+
+/* ── ZONE 1 ──────────────────────────────────────── */
+.zone1 { display:grid; grid-template-columns:1fr 420px; border-bottom:1px solid var(--border); }
+.zone1-left  { padding:20px 22px; border-right:1px solid var(--border); }
+.zone1-right { padding:20px 20px; display:flex; flex-direction:column; gap:14px; }
+
+.stock-title { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
+.stock-ticker { font-family:'DM Mono',monospace; font-size:26px; font-weight:500; line-height:1; }
+.stock-name   { font-family:'Instrument Serif',serif; font-size:18px; font-style:italic; color:var(--text2); line-height:1.2; }
+.stock-meta   { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+.meta-chip    {
+  font-size:9px; font-weight:600; letter-spacing:.07em; padding:2px 7px;
+  border-radius:3px; background:var(--s3); color:var(--text3); border:1px solid var(--border); text-transform:uppercase;
+}
+
+.section-label {
+  font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text3); margin-bottom:7px; display:flex; align-items:center; gap:8px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.bullet-list { list-style:none; display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+.bullet-list li {
+  font-size:11.5px; color:var(--text2); line-height:1.55; padding-left:13px; position:relative;
+}
+.bullet-list li::before {
+  content:''; position:absolute; left:0; top:7px;
+  width:5px; height:5px; border-radius:50%; background:var(--text3);
+}
+.bullet-list li strong { color:var(--text); font-weight:600; }
+
+.moat-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.moat-item { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:8px 10px; }
+.moat-item-label { font-size:8px; font-weight:700; letter-spacing:.1em; color:var(--text3); text-transform:uppercase; margin-bottom:3px; }
+.moat-item-value { font-size:11px; color:var(--text2); line-height:1.4; }
+.moat-item-value strong { color:var(--text); font-weight:600; }
+
+/* price numbers */
+.price-numbers { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+.price-item { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:8px 9px; text-align:center; }
+.price-item-label { font-size:8px; font-weight:700; letter-spacing:.09em; color:var(--text3); text-transform:uppercase; margin-bottom:3px; }
+.price-item-value { font-family:'DM Mono',monospace; font-size:14px; font-weight:500; color:var(--text); }
+.price-item-value.live  { color:var(--cyan); font-size:17px; }
+.price-item-value.gold  { color:var(--gold); }
+.price-item-sub { font-size:9px; color:var(--text3); margin-top:1px; font-family:'DM Mono',monospace; }
+
+/* dual range bars */
+.range-bar-wrap { display:flex; flex-direction:column; gap:10px; }
+.range-bar-section { }
+.range-bar-section-label { font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:5px; }
+.range-bar-outer {
+  height:8px; background:var(--s3); border-radius:4px; position:relative;
+  margin:0 0 4px; border:1px solid var(--border);
+}
+.range-bar-fill {
+  position:absolute; height:100%; border-radius:4px; top:0;
+  background:linear-gradient(90deg, rgba(248,113,113,.2) 0%, rgba(251,191,36,.25) 50%, rgba(52,211,153,.2) 100%);
+  left:0; width:100%;
+}
+.range-marker { position:absolute; top:50%; transform:translate(-50%,-50%); z-index:2; }
+.range-marker-dot { width:10px; height:10px; border-radius:50%; border:2px solid var(--bg); }
+.range-marker-dot.live     { background:var(--cyan);  width:14px; height:14px; }
+.range-marker-dot.report   { background:#c8d8f8; width:10px; height:10px; }
+.range-marker-dot.target   { background:var(--gold);  }
+.range-marker-dot.bull     { background:var(--green); width:8px; height:8px; }
+.range-marker-dot.base     { background:var(--blue);  width:8px; height:8px; }
+.range-marker-dot.bear_    { background:var(--red);   width:8px; height:8px; }
+.range-marker-dot.w52      { background:var(--text3); width:6px; height:6px; }
+.range-legend { display:flex; flex-wrap:wrap; gap:7px; margin-top:2px; }
+.range-legend-item { display:flex; align-items:center; gap:3px; font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; }
+.range-legend-dot  { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+/* range bar ends / above labels */
+.range-bar-ends { position:relative; height:28px; margin-top:3px; }
+.range-bar-end { position:absolute; transform:translateX(-50%); font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); text-align:center; line-height:1.3; white-space:nowrap; }
+.range-bar-end.rbe-start { left:0%; transform:none; text-align:left; }
+.range-bar-end.rbe-end   { right:0%; left:auto; transform:none; text-align:right; }
+.rbe-label { font-size:8px; color:var(--text3); opacity:.7; }
+.range-bar-above { position:relative; height:30px; }
+.range-bar-above-label { position:absolute; transform:translateX(-50%); font-family:'DM Mono',monospace; font-size:10px; color:var(--cyan); text-align:center; line-height:1.3; white-space:nowrap; bottom:0; }
+.rba-sub { font-size:8px; color:var(--text3); }
+
+/* multiples */
+.multiples-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.mult-item { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:8px 10px; }
+.mult-label { font-size:8px; font-weight:700; letter-spacing:.09em; color:var(--text3); text-transform:uppercase; margin-bottom:3px; }
+.mult-value { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--text); margin-bottom:3px; }
+.mult-bar-outer { height:3px; background:var(--border); border-radius:2px; }
+.mult-bar-fill  { height:100%; border-radius:2px; background:var(--blue); }
+.mult-sub { font-size:9px; color:var(--text3); margin-top:3px; font-family:'DM Mono',monospace; }
+
+/* PWT row */
+.pwt-row {
+  background:var(--s3); border:1px solid var(--border2); border-radius:5px;
+  padding:9px 13px; display:grid; grid-template-columns:repeat(3,1fr) auto; gap:6px; align-items:center;
+}
+.pwt-scenario { text-align:center; }
+.pwt-label_ { font-size:8px; letter-spacing:.09em; color:var(--text3); text-transform:uppercase; }
+.pwt-price_ { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+.pwt-prob_  { font-size:9px; color:var(--text3); margin-top:1px; }
+.pwt-final  { border-left:1px solid var(--border2); padding-left:11px; text-align:center; }
+.pwt-final-label { font-size:8px; letter-spacing:.09em; color:var(--text3); text-transform:uppercase; }
+.pwt-final-value { font-family:'DM Mono',monospace; font-size:17px; font-weight:500; color:var(--gold); }
+.pwt-final-sub   { font-size:9px; font-family:'DM Mono',monospace; margin-top:1px; }
+.pwt-ratio { font-size:10px; color:var(--text2); text-align:center; margin-top:3px; font-family:'DM Mono',monospace; }
+
+/* entry price (replaces U/D) */
+.entry-price-inline {
+  background:var(--s3); border:1px solid var(--border2); border-radius:5px;
+  padding:8px 12px; display:flex; align-items:center; justify-content:space-between;
+}
+.entry-price-left .epl-label { font-size:8px; font-weight:700; letter-spacing:.1em; color:var(--text3); text-transform:uppercase; margin-bottom:2px; }
+.entry-price-left .epl-value { font-family:'DM Mono',monospace; font-size:17px; font-weight:500; color:var(--cyan); }
+.entry-price-right { text-align:right; }
+.entry-price-right .epr-note { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
+.entry-price-right .epr-trigger { font-size:10px; color:var(--text2); margin-top:2px; }
+
+/* ── ZONE 2 DEBATES ──────────────────────────────── */
+.zone2 { border-bottom:1px solid var(--border); padding:20px 22px; }
+.debates-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:10px; }
+.debate-card { border-radius:6px; overflow:hidden; border:1px solid var(--border2); }
+.debate-title {
+  padding:9px 13px; background:var(--s2); font-size:11px; font-weight:700; color:var(--text);
+  border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.debate-num_ { font-family:'DM Mono',monospace; font-size:10px; color:var(--text3); flex-shrink:0; }
+.debate-status {
+  font-size:8px; font-weight:700; letter-spacing:.1em; padding:2px 7px;
+  border-radius:3px; text-transform:uppercase; flex-shrink:0;
+}
+.debate-status.RESOLVED  { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bd); }
+.debate-status.LIVE      { background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); }
+.debate-status.ESCALATED { background:var(--red-bg);   color:var(--red);   border:1px solid var(--red-bd);   }
+.debate-status.SHIFTED   { background:var(--blue-bg);  color:var(--blue);  border:1px solid var(--blue-bd);  }
+.debate-status.UNCHANGED { background:var(--s3);       color:var(--text3); border:1px solid var(--border);   }
+
+.debate-resolution { padding:9px 11px; font-size:11px; color:var(--text2); line-height:1.55; }
+.debate-verdict-row { padding:7px 11px; background:var(--s3); border-top:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+.debate-verdict-label { font-size:8px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
+.debate-verdict-label.bull { color:var(--green); }
+.debate-verdict-label.bear { color:var(--red); }
+.debate-verdict-label.neutral { color:var(--amber); }
+.debate-verdict-price { font-family:'DM Mono',monospace; font-size:11px; color:var(--text2); }
+
+.debate-update { padding:8px 11px; border-top:1px solid var(--border); background:var(--bg); min-height:38px; }
+.debate-update-label { font-size:8px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
+.debate-update-content { font-size:11px; color:var(--text2); line-height:1.5; }
+.updating-inline { display:flex; align-items:center; gap:5px; color:var(--text3); font-size:11px; font-style:italic; }
+.spin-dot { width:6px; height:6px; border-radius:50%; background:var(--blue); animation:pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.3}50%{opacity:1} }
+
+/* net sentiment */
+.net-sentiment {
+  margin-top:13px; padding:11px 15px; border-radius:6px;
+  border:1px solid var(--border2); background:var(--s2);
+  display:flex; align-items:flex-start; gap:13px;
+}
+.net-sentiment-label { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); white-space:nowrap; padding-top:1px; }
+.net-sentiment-badge {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  padding:3px 10px; border-radius:3px; white-space:nowrap;
+}
+.net-sentiment-badge.BULLISH       { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bd); }
+.net-sentiment-badge.MILDLY_BULLISH{ background:rgba(52,211,153,.06); color:#6ee7b7; border:1px solid rgba(52,211,153,.15); }
+.net-sentiment-badge.NEUTRAL       { background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); }
+.net-sentiment-badge.MILDLY_BEARISH{ background:rgba(248,113,113,.06); color:#fca5a5; border:1px solid rgba(248,113,113,.15); }
+.net-sentiment-badge.BEARISH       { background:var(--red-bg);   color:var(--red);   border:1px solid var(--red-bd); }
+.net-sentiment-text { font-size:12px; color:var(--text2); line-height:1.5; }
+.thesis-hinge { font-size:11px; color:var(--gold); font-weight:600; margin-top:4px; }
+
+/* ── ZONE 3 ──────────────────────────────────────── */
+.zone3 {
+  border-bottom:1px solid var(--border); padding:13px 22px;
+  display:grid; grid-template-columns:1fr 1fr; gap:20px;
+}
+.fin-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.fin-item  { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:7px 9px; text-align:center; }
+.fin-label { font-size:8px; font-weight:700; letter-spacing:.08em; color:var(--text3); text-transform:uppercase; margin-bottom:3px; }
+.fin-value { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+.fin-trend { font-size:9px; margin-top:2px; font-family:'DM Mono',monospace; }
+.fin-trend.up   { color:var(--green); }
+.fin-trend.down { color:var(--red); }
+
+.catalyst-row {
+  display:grid; grid-template-columns:1fr auto auto auto; gap:9px;
+  align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:11px;
+}
+.catalyst-row:last-child { border-bottom:none; }
+.catalyst-name { color:var(--text2); font-weight:500; }
+.catalyst-date { font-family:'DM Mono',monospace; font-size:10px; color:var(--text3); white-space:nowrap; }
+.catalyst-type { font-size:8px; font-weight:700; letter-spacing:.08em; padding:2px 6px; border-radius:3px; }
+.catalyst-type.bull { background:var(--green-bg); color:var(--green); }
+.catalyst-type.bear { background:var(--red-bg); color:var(--red); }
+.catalyst-mag  { font-size:8px; font-weight:700; padding:2px 6px; border-radius:3px; background:var(--s3); color:var(--text3); letter-spacing:.06em; }
+.catalyst-mag.H { color:var(--amber); background:var(--amber-bg); }
+
+/* ── ZONE 4 ──────────────────────────────────────── */
+.zone4 { display:grid; grid-template-columns:1fr 1fr; }
+.zone4-orig    { padding:18px 22px; border-right:1px solid var(--border); }
+.zone4-updated { padding:18px 20px; }
+
+.advice-box {
+  background:var(--s2); border:1px solid var(--border); border-radius:6px;
+  padding:13px 15px; font-size:12px; color:var(--text2); line-height:1.65;
+  border-left-width:3px;
+}
+.advice-box.BUY  { border-left-color:var(--green); }
+.advice-box.HOLD { border-left-color:var(--amber); }
+.advice-box.WAIT { border-left-color:var(--purple); }
+.advice-box.SELL { border-left-color:var(--red); }
+
+.conviction-trigger {
+  margin-top:9px; padding:9px 13px;
+  background:var(--s3); border:1px solid var(--border2);
+  border-radius:5px; border-left:3px solid var(--gold);
+}
+.conviction-trigger-label { font-size:8px; font-weight:700; letter-spacing:.12em; color:var(--gold); text-transform:uppercase; margin-bottom:3px; }
+.conviction-trigger-text  { font-size:11px; color:var(--text2); line-height:1.5; }
+
+.entry-price-box {
+  margin-top:9px; padding:9px 13px; background:var(--s3);
+  border:1px solid var(--border2); border-radius:5px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.entry-lbl   { font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--text3); text-transform:uppercase; }
+.entry-val   { font-family:'DM Mono',monospace; font-size:17px; font-weight:500; color:var(--cyan); }
+.entry-note  { font-size:10px; color:var(--text3); margin-top:2px; font-family:'DM Mono',monospace; }
+
+.better-alt { margin-top:9px; padding:9px 13px; background:var(--s3); border:1px solid var(--border2); border-radius:5px; }
+.better-alt-label { font-size:8px; font-weight:700; letter-spacing:.1em; color:var(--text3); text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; gap:8px; }
+.better-alt-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.better-alt-content { font-size:11px; color:var(--text2); line-height:1.5; }
+.alt-ticker { font-family:'DM Mono',monospace; color:var(--cyan); font-weight:500; }
+
+.updated-callbox { border-radius:6px; overflow:hidden; border:1px solid var(--border2); }
+.updated-callbox-header {
+  padding:9px 13px; background:var(--s3); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.updated-callbox-title { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); }
+.updated-callbox-time  { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; }
+.updated-callbox-body  { padding:13px; font-size:12px; color:var(--text2); line-height:1.65; min-height:70px; }
+
+/* ── MOAT STRENGTH ── */
+.moat-item-label { display:flex; align-items:center; justify-content:space-between; }
+.moat-strength { font-size:7px; font-weight:700; letter-spacing:.08em; padding:2px 6px; border-radius:3px; text-transform:uppercase; }
+.moat-strength.strong { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bd); }
+.moat-strength.moderate { background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); }
+.moat-strength.weak { background:var(--red-bg); color:var(--red); border:1px solid var(--red-bd); }
+.moat-bar-outer_ { height:4px; background:var(--s3); border-radius:2px; margin-top:6px; overflow:hidden; }
+.moat-bar-fill_ { height:100%; border-radius:2px; }
+.moat-bar-fill_.strong { background:var(--green); width:90%; }
+.moat-bar-fill_.moderate { background:var(--amber); width:60%; }
+.moat-bar-fill_.weak { background:var(--red); width:30%; }
+
+/* ── SCORE EXPLANATION ── */
+.score-explain-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.score-explain-item { padding:6px 9px; background:var(--s2); border:1px solid var(--border); border-radius:5px; border-left:3px solid; }
+.score-explain-item.positive { border-left-color:var(--green); }
+.score-explain-item.negative { border-left-color:var(--red); }
+.score-explain-item.neutral  { border-left-color:var(--amber); }
+.score-explain-factor { font-size:8px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); display:flex; align-items:center; gap:4px; margin-bottom:1px; }
+.score-explain-factor .se-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.score-explain-factor .se-dot.green { background:var(--green); }
+.score-explain-factor .se-dot.red { background:var(--red); }
+.score-explain-factor .se-dot.amber { background:var(--amber); }
+.score-explain-detail { font-size:10px; color:var(--text2); line-height:1.35; }
+
+/* ── INDUSTRY ANALYSIS ── */
+.industry-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:8px; }
+.industry-stat { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:5px 7px; text-align:center; }
+.industry-stat-label { font-size:7px; font-weight:700; letter-spacing:.07em; color:var(--text3); text-transform:uppercase; margin-bottom:1px; }
+.industry-stat-value { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+.industry-stat-sub { font-size:8px; color:var(--text3); }
+.industry-peers-table { width:100%; border-collapse:collapse; margin:6px 0; border:1px solid var(--border); border-radius:5px; overflow:hidden; font-size:10px; }
+.industry-peers-table th { font-size:7px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text3); background:var(--s3); padding:4px 7px; text-align:left; border-bottom:1px solid var(--border); }
+.industry-peers-table td { color:var(--text2); padding:3px 7px; border-bottom:1px solid var(--border); font-family:'DM Mono',monospace; }
+.industry-peers-table tr:last-child td { border-bottom:none; }
+.industry-peers-table td:first-child { color:var(--cyan); font-weight:600; }
+.industry-drivers { display:flex; flex-direction:column; gap:3px; }
+.industry-driver { font-size:10px; color:var(--text2); line-height:1.4; padding-left:14px; position:relative; }
+.industry-driver::before { content:''; position:absolute; left:0; top:6px; width:6px; height:6px; border-radius:50%; }
+.industry-driver.bull::before { background:var(--green); }
+.industry-driver.bear::before { background:var(--red); }
+
+/* ── HISTORICAL FINANCIAL TABLE ── */
+.fin-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:4px; }
+.fin-table {
+  width:100%; border-collapse:collapse; font-family:'DM Mono',monospace;
+  font-size:9.5px; table-layout:fixed;
+}
+.fin-table th, .fin-table td {
+  padding:4px 7px; text-align:right; border:1px solid var(--border); white-space:nowrap;
+}
+.fin-table th:first-child, .fin-table td:first-child {
+  text-align:left; font-family:'DM Sans',sans-serif; font-size:9px; font-weight:600;
+  color:var(--text3); letter-spacing:.04em; text-transform:uppercase; width:110px;
+}
+/* Header row */
+.fin-table thead th {
+  background:var(--s3); color:var(--text2); font-size:8.5px; font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase; border-bottom:2px solid var(--border2);
+}
+/* Historical columns (FY22–FY25): alternating subtle tint */
+.fin-table td.hist-a { background:rgba(255,255,255,0.02); color:var(--text2); }
+.fin-table td.hist-b { background:rgba(255,255,255,0.05); color:var(--text2); }
+/* CAGR column */
+.fin-table td.cagr { background:rgba(30,40,60,0.5); color:var(--text3); font-weight:700; font-size:9px; }
+.fin-table th.cagr { background:rgba(30,40,60,0.6); color:var(--text3); }
+/* Forecast columns (FY26E–FY29E): blue tint */
+.fin-table td.fwd  { background:rgba(96,165,250,0.07); color:var(--text); }
+.fin-table th.fwd  { background:rgba(96,165,250,0.14); color:var(--blue); }
+/* Fwd CAGR column */
+.fin-table td.fwd-cagr { background:rgba(96,165,250,0.18); color:var(--blue); font-weight:700; font-size:9px; }
+.fin-table th.fwd-cagr { background:rgba(96,165,250,0.25); color:var(--blue); }
+/* Positive/negative values in forecast zone */
+.fin-table td.fwd.up   { color:var(--green); }
+.fin-table td.fwd.down { color:var(--red); }
+/* Metric label column header */
+.fin-table thead th:first-child { text-align:left; }
+/* Highlight row (subtly different) */
+.fin-table tr.fin-row-highlight td { border-top:2px solid var(--border2); }
+/* Headline stats row above table */
+.fin-headline { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px; }
+.fin-hl-item { background:var(--s2); border:1px solid var(--border); border-radius:5px; padding:7px 9px; text-align:center; }
+.fin-hl-label { font-size:8px; font-weight:700; letter-spacing:.09em; color:var(--text3); text-transform:uppercase; margin-bottom:2px; }
+.fin-hl-value { font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:var(--text); }
+.fin-hl-sub   { font-size:9px; color:var(--text3); margin-top:1px; font-family:'DM Mono',monospace; }
+@media (max-width:768px) {
+  .fin-headline { grid-template-columns:1fr 1fr; gap:4px; }
+  .fin-hl-value { font-size:11px; }
+  .fin-table { font-size:8.5px; }
+  .fin-table th, .fin-table td { padding:3px 4px; }
+  .fin-table td:first-child, .fin-table th:first-child { width:80px; font-size:8px; }
+}
+
+/* ── CAPITAL ALLOCATION STRUCTURED ── */
+.cap-score-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.cap-score-box { padding:9px 11px; background:var(--s2); border:1px solid var(--border); border-radius:6px; }
+.cap-score-label { font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; display:flex; align-items:center; gap:5px; }
+.cap-score-val { font-family:'DM Mono',monospace; font-size:20px; font-weight:600; line-height:1; }
+.cap-score-val span { font-size:11px; color:var(--text3); font-weight:400; }
+.cap-score-bar { height:4px; background:var(--s3); border-radius:2px; margin-top:5px; overflow:hidden; }
+.cap-score-bar-fill { height:100%; border-radius:2px; }
+.cap-score-desc { font-size:9px; color:var(--text2); margin-top:3px; line-height:1.3; }
+.cap-final-rec { padding:10px 12px; border-radius:6px; margin-bottom:6px; }
+.cap-final-rec.BUY  { background:var(--green-bg); border:1px solid var(--green-bd); }
+.cap-final-rec.HOLD { background:var(--amber-bg); border:1px solid var(--amber-bd); }
+.cap-final-rec.WAIT { background:var(--wait-bg);  border:1px solid var(--wait-bd);  }
+.cap-final-rec.SELL { background:var(--red-bg);   border:1px solid var(--red-bd);   }
+.cap-final-label { font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px; }
+.cap-final-rec.BUY .cap-final-label { color:var(--green); }
+.cap-final-rec.HOLD .cap-final-label { color:var(--amber); }
+.cap-final-rec.WAIT .cap-final-label { color:var(--purple); }
+.cap-final-rec.SELL .cap-final-label { color:var(--red); }
+.cap-final-text { font-size:11px; color:var(--text2); line-height:1.55; }
+
+
+/* ════════════════════════════════════════════════════
+   MOBILE RESPONSIVE  (≤ 768px)
+════════════════════════════════════════════════════ */
+@media (max-width:768px) {
+  /* ── GLOBAL OVERFLOW KILL ── */
+  html, body { overflow-x:hidden !important; max-width:100vw; }
+  .card-shell { max-width:100vw !important; width:100% !important; border-radius:0; min-height:100vh; overflow-x:hidden !important; box-sizing:border-box; }
+  .modal-overlay { padding:0; }
+  *, *::before, *::after { box-sizing:border-box; word-wrap:break-word; overflow-wrap:break-word; min-width:0; }
+
+  /* Force all nowrap text to wrap on mobile */
+  .sector-chip, .rating-badge, .entry-flag, .catalyst-date, .action-badge,
+  .net-sentiment-label, .net-sentiment-badge, .stale-badge, .refresh-btn,
+  .moat-strength, th { white-space:normal !important; }
+
+  /* ── PAGE HEADER ── */
+  .page-header { flex-direction:column; gap:10px; padding:12px 12px 10px; align-items:stretch; }
+  .page-title { font-size:17px; }
+  .page-sub { font-size:9px; }
+  .header-stats { flex-wrap:wrap; gap:8px; width:100%; }
+  .header-stats .stat-item { flex:1; min-width:50px; }
+  .stat-val { font-size:13px; }
+  .header-stats > div:last-child { width:100%; }
+  .header-stats input#priceInput { width:100% !important; font-size:11px; }
+
+  /* ── TABLE: scroll contained inside .table-wrap only ── */
+  .table-wrap { padding:8px 0; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100vw; }
+  table { min-width:780px; }
+  th { padding:6px 5px; font-size:8px; letter-spacing:.08em; }
+  td { padding:6px 5px; font-size:10px; }
+
+  /* ── ACTION HEADER ── */
+  .action-header { flex-wrap:wrap; gap:8px; padding:10px 12px; }
+  .action-left { width:100%; gap:8px; }
+  .action-badge { font-size:9px; padding:4px 8px; }
+  .action-instruction { font-size:11px; }
+  .action-trigger { font-size:9px; }
+  .header-right { width:100%; flex-wrap:wrap; gap:6px; justify-content:space-between; }
+  .score-cluster { gap:5px; }
+  .score-val { font-size:13px; }
+  .score-lbl { font-size:7px; }
+  .score-divider { height:22px; }
+  .refresh-btn { flex:1; justify-content:center; padding:8px 10px; min-height:36px; font-size:10px; }
+  .close-card-btn { width:34px; height:34px; font-size:18px; }
+  .last-refreshed { text-align:left; font-size:9px; }
+  .stale-badge { font-size:8px; padding:2px 6px; }
+
+  /* ── THESIS BANNER ── */
+  .thesis-banner { font-size:10px; padding:6px 12px; }
+
+  /* ── ZONE 1: stack vertically ── */
+  .zone1 { grid-template-columns:1fr !important; }
+  .zone1-left  { border-right:none !important; border-bottom:1px solid var(--border); padding:12px; }
+  .zone1-right { padding:12px; }
+
+  /* ── STOCK TITLE ── */
+  .stock-title { gap:8px; flex-wrap:wrap; }
+  .stock-ticker { font-size:18px; }
+  .stock-name { font-size:13px; }
+  .meta-chip { font-size:7px; padding:2px 4px; }
+  .stock-meta { gap:4px; }
+
+  /* ── SECTION LABELS ── */
+  .section-label { font-size:8px; letter-spacing:.1em; margin-bottom:5px; }
+
+  /* ── INDUSTRY ANALYSIS ── */
+  .industry-stats-grid { grid-template-columns:1fr 1fr !important; gap:4px; }
+  .industry-stat { padding:4px 5px; }
+  .industry-stat-value { font-size:10px; }
+  .industry-stat-label { font-size:6px; }
+  .industry-stat-sub { font-size:7px; }
+  .industry-peers-table { font-size:9px; }
+  .industry-peers-table td, .industry-peers-table th { padding:3px 4px; font-size:8px; }
+  .industry-driver { font-size:9px; padding-left:12px; }
+  .industry-driver::before { width:5px; height:5px; top:5px; }
+
+  /* ── THESIS BULLETS ── */
+  .bullet-list li { font-size:10px; line-height:1.4; padding-left:11px; }
+  .bullet-list li::before { width:4px; height:4px; top:6px; }
+
+  /* ── MOAT GRID ── */
+  .moat-grid { grid-template-columns:1fr !important; }
+  .moat-item { padding:6px 8px; }
+  .moat-item-label { font-size:7px; }
+  .moat-item-value { font-size:9px; }
+  .moat-strength { font-size:6px; padding:1px 4px; }
+
+  /* ── SCORE BREAKDOWN: stack ── */
+  .zone1-left > div:last-child { grid-template-columns:1fr !important; gap:10px !important; }
+  .score-explain-grid { grid-template-columns:1fr !important; }
+  .score-explain-item { padding:5px 7px; }
+  .score-explain-factor { font-size:7px; }
+  .score-explain-detail { font-size:9px; }
+
+  /* ── PRICE & TARGET ── */
+  .price-numbers { grid-template-columns:1fr 1fr !important; gap:4px; }
+  .price-item { padding:5px 6px; }
+  .price-item-value { font-size:11px !important; }
+  .price-item-value.live { font-size:13px !important; }
+  .price-item-value.gold { font-size:11px !important; }
+  .price-item-label { font-size:7px; }
+  .price-item-sub { font-size:7px; }
+
+  /* ── MINI FINANCIALS ── */
+  .fin-strip { grid-template-columns:repeat(3,1fr) !important; gap:3px; }
+  .fin-item { padding:4px 5px; }
+  .fin-value { font-size:10px; }
+  .fin-label { font-size:6px; }
+  .fin-trend { font-size:7px; }
+
+  /* ── RANGE BAR / PRICE SPECTRUM ── */
+  .range-bar-section-label { font-size:7px; }
+  .range-legend { gap:3px; flex-wrap:wrap; }
+  .range-legend-item { font-size:7px; gap:2px; }
+  .range-legend-dot { width:5px; height:5px; }
+  .range-marker-dot { border-width:1.5px; }
+  .range-marker-dot.live { width:10px; height:10px; }
+
+  /* ── MULTIPLES ── */
+  .multiples-grid { grid-template-columns:1fr 1fr !important; gap:4px; }
+  .mult-item { padding:6px 7px; }
+  .mult-value { font-size:11px; }
+  .mult-label { font-size:7px; }
+  .mult-sub { font-size:7px; }
+
+  /* ── PWT SCENARIO ROW ── */
+  .pwt-row { grid-template-columns:1fr 1fr 1fr !important; gap:3px; padding:6px 8px; }
+  .pwt-price_ { font-size:10px !important; }
+  .pwt-label_ { font-size:7px; }
+  .pwt-prob_ { font-size:7px; }
+  .pwt-final { border-left:none; border-top:1px solid var(--border2); padding-left:0; padding-top:6px; grid-column:1 / -1; text-align:center; }
+  .pwt-final-value { font-size:13px !important; }
+  .pwt-final-label { font-size:7px; }
+  .pwt-final-sub { font-size:7px; }
+  .pwt-ratio { font-size:8px; }
+
+  /* ── ZONE 2: DEBATES ── */
+  .zone2 { padding:12px; }
+  .debates-grid { grid-template-columns:1fr !important; gap:8px; }
+  .debate-title { font-size:10px; padding:7px 9px; flex-wrap:wrap; gap:4px; }
+  .debate-num_ { font-size:9px; }
+  .debate-status { font-size:7px; padding:2px 5px; }
+  .debate-resolution { font-size:9px; padding:7px 9px; }
+  .debate-verdict-row { padding:5px 9px; flex-wrap:wrap; gap:4px; }
+  .debate-verdict-label { font-size:7px; }
+  .debate-verdict-price { font-size:9px; }
+  .debate-update { padding:6px 9px; }
+  .debate-update-label { font-size:7px; }
+  .debate-update-content { font-size:9px; }
+  .net-sentiment { flex-direction:column; gap:6px; padding:8px 10px; }
+  .net-sentiment-label { font-size:8px; }
+  .net-sentiment-badge { font-size:8px; padding:2px 7px; }
+  .net-sentiment-text { font-size:10px; }
+  .thesis-hinge { font-size:9px; }
+
+  /* ── ZONE 3 ── */
+  .zone3 { grid-template-columns:1fr !important; padding:8px 12px; }
+
+  /* ── ZONE 4: stack ── */
+  .zone4 { grid-template-columns:1fr !important; }
+  .zone4-orig { border-right:none !important; border-bottom:1px solid var(--border); padding:12px; }
+  .zone4-updated { padding:12px; }
+
+  /* ── CAPITAL ALLOCATION SCORES ── */
+  .cap-score-row { grid-template-columns:1fr 1fr; gap:5px; }
+  .cap-score-box { padding:7px 9px; }
+  .cap-score-val { font-size:15px; }
+  .cap-score-val span { font-size:9px; }
+  .cap-score-label { font-size:7px; gap:3px; }
+  .cap-score-desc { font-size:8px; }
+  .cap-final-rec { padding:8px 10px; }
+  .cap-final-text { font-size:10px; line-height:1.45; }
+  .cap-final-label { font-size:7px; }
+
+  /* ── CONVICTION / ENTRY / ALT ── */
+  .conviction-trigger { padding:7px 9px; }
+  .conviction-trigger-label { font-size:7px; }
+  .conviction-trigger-text { font-size:9px; }
+  .entry-price-box { flex-direction:column; gap:5px; padding:7px 9px; }
+  .entry-val { font-size:13px !important; }
+  .entry-lbl { font-size:7px; }
+  .entry-note { font-size:8px; }
+  .entry-price-box > div:last-child { text-align:left; }
+  .better-alt { padding:7px 9px; }
+  .better-alt-label { font-size:7px; }
+  .better-alt-content { font-size:9px; }
+
+  /* ── UPDATED ADVICE PANEL ── */
+  .updated-callbox-body { padding:9px; font-size:10px; }
+  .updated-callbox-title { font-size:8px; }
+  .updated-callbox-time { font-size:8px; }
+
+  /* ── CATALYST ROW ── */
+  .catalyst-row { grid-template-columns:1fr auto !important; gap:4px; font-size:10px; }
+  .catalyst-name { font-size:10px; }
+  .catalyst-date { font-size:8px; }
+  .catalyst-type { font-size:7px; }
+  .catalyst-mag { font-size:7px; }
+
+  /* ── TOUCH TARGETS ── */
+  .open-btn { padding:6px 10px; font-size:9px; min-height:30px; }
+  tbody tr { min-height:40px; }
+  .rating-badge { padding:3px 6px; font-size:8px; }
+  .sector-chip { font-size:8px; padding:2px 5px; }
+
+  /* ── TABLE TEXT ── */
+  .ticker-cell { font-size:11px; }
+  .name-cell { font-size:10px; max-width:100px; }
+  .price-mono { font-size:10px; }
+  .upside-pos, .upside-neg { font-size:10px; }
+  .sq-pill { font-size:10px; }
+
+  /* ── MOBILE TABLE: hide less critical columns for readability ── */
+  /* Hide: Name(2), Sector(3), Priority(4), Report Px(6), Δ vs Report(8), Entry Price(11) */
+  #watchlistTable th:nth-child(2),
+  #watchlistTable td:nth-child(2),
+  #watchlistTable th:nth-child(3),
+  #watchlistTable td:nth-child(3),
+  #watchlistTable th:nth-child(4),
+  #watchlistTable td:nth-child(4),
+  #watchlistTable th:nth-child(7),
+  #watchlistTable td:nth-child(7),
+  #watchlistTable th:nth-child(9),
+  #watchlistTable td:nth-child(9),
+  #watchlistTable th:nth-child(12),
+  #watchlistTable td:nth-child(12) { display:none; }
+
+  /* Remaining visible: Ticker | Rating | SQ/Dis | Live Px | PW Target | Upside | vs Entry | Open */
+  table { min-width:auto !important; width:100%; }
+  .table-wrap { overflow-x:hidden; }
+  th { padding:7px 5px; }
+  td { padding:8px 5px; }
+
+  /* Ticker column gets more breathing room */
+  #watchlistTable td:first-child { padding-left:8px; }
+  .ticker-cell { font-size:12px; font-weight:600; }
+
+  /* Left border for rating more visible */
+  tbody tr.BUY td:first-child  { border-left-width:4px; }
+  tbody tr.HOLD td:first-child { border-left-width:4px; }
+  tbody tr.WAIT td:first-child { border-left-width:4px; }
+  tbody tr.SELL td:first-child { border-left-width:4px; }
+
+  /* Open button more compact */
+  .open-btn { padding:5px 8px; font-size:8px; letter-spacing:0; }
+}
+
+/* ── EXTRA SMALL (≤ 420px) ── */
+@media (max-width:420px) {
+  .cap-score-row { grid-template-columns:1fr !important; }
+  .price-numbers { grid-template-columns:1fr 1fr !important; }
+  .industry-stats-grid { grid-template-columns:1fr 1fr !important; }
+  .fin-strip { grid-template-columns:1fr 1fr !important; }
+  .pwt-row { grid-template-columns:1fr !important; }
+  .pwt-final { border-top:1px solid var(--border2); }
+  .multiples-grid { grid-template-columns:1fr !important; }
+  .action-header .score-cluster { width:100%; justify-content:center; }
+  .stock-ticker { font-size:16px; }
+  .stock-name { font-size:12px; }
+  .score-val { font-size:12px; }
+  .price-item-value.live { font-size:12px !important; }
+  .entry-val { font-size:12px !important; }
+  .cap-score-val { font-size:14px; }
+  .pwt-final-value { font-size:12px !important; }
+  .pwt-price_ { font-size:9px !important; }
+}
+
+@media print {
+  @page { size: A4 portrait; margin: 12mm 10mm; }
+
+  /* remap only the neutral/background variables — accent colours are untouched */
+  #cardShell {
+    --bg:      #ffffff;
+    --surface: #ffffff;
+    --s2:      #f4f6fa;
+    --s3:      #eef1f7;
+    --border:  #d8dce8;
+    --border2: #c4cad9;
+    --text:    #0f1117;
+    --text2:   #3a4258;
+    --text3:   #6b7590;
+  }
+
+  /* hide everything except the card */
+  body { background:#fff !important; }
+  body > *:not(#modalOverlay) { display:none !important; }
+  #modalOverlay {
+    position:static !important; display:block !important;
+    background:none !important; overflow:visible !important; padding:0 !important;
+  }
+  .modal-close-bg { display:none !important; }
+  #cardShell {
+    position:static !important; max-height:none !important; overflow:visible !important;
+    width:100% !important; max-width:none !important; border-radius:0 !important;
+    box-shadow:none !important; margin:0 !important; border:none !important;
+  }
+
+  /* hide interactive elements */
+  .pdf-btn, .refresh-btn, .close-card-btn, .last-refreshed { display:none !important; }
+
+  /* keep two-column zone1 layout */
+  .zone1 { display:grid !important; grid-template-columns:1fr 1fr !important; }
+
+  /* avoid mid-content page breaks */
+  .zone2, .moat-item, .debate-card, .fin-item,
+  .score-explain-item, .range-bar-section { page-break-inside:avoid; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     WATCHLIST TABLE
+════════════════════════════════ -->
+<div class="page-header">
+  <div>
+    <div class="page-title">Watchlist</div>
+    <div class="page-sub">WATCHLIST · <span id="todayDate"></span> · <span id="stockCount">0</span> POSITIONS</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-item"><div class="stat-val" id="statBuys">—</div><div class="stat-lbl">Active Buys</div></div>
+    <div class="stat-item"><div class="stat-val" id="statAvgUpside">—</div><div class="stat-lbl">Avg Upside</div></div>
+    <div class="stat-item">
+      <div class="priority-select-wrap">
+        <label>Priority Filter</label>
+        <select class="priority-select" id="priorityFilter" onchange="applyPriorityFilter()">
+          <option value="all">All Stocks</option>
+          <option value="bought">Bought</option>
+          <option value="watchlist">Watchlist</option>
+          <option value="backburner">Backburner</option>
+        </select>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace" id="priorityCount"></div>
+    </div>
+    <div class="stat-item">
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <div style="display:flex;gap:6px;align-items:center">
+          <textarea id="priceInput" placeholder="Paste price string…" rows="1" style="width:220px;height:30px;padding:6px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:10px;outline:none;transition:border .15s;resize:vertical;line-height:1.4;white-space:nowrap;overflow-x:auto" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border2)'" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))applyPriceString()"></textarea>
+          <button id="refreshAllBtn" onclick="refreshAllPrices()" title="Fetches live prices from your Google Sheet. If fetch fails, see console for setup instructions." style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--cyan);font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;white-space:nowrap;transition:all .15s">
+            <svg id="refreshAllIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            UPDATE
+          </button>
+        </div>
+        <div id="refreshAllStatus" style="font-size:9px;color:var(--text3);text-align:right;font-family:'DM Mono',monospace"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reader-friendly utility bar -->
+<div class="utility-bar" style="padding:10px 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+  <input type="text" id="searchInput" placeholder="Search ticker or name..." oninput="applySearchFilter()" style="flex:1;min-width:200px;max-width:320px;padding:7px 12px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;transition:border .15s;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border2)'">
+  <div id="ratingChips" style="display:flex;gap:6px;flex-wrap:wrap;">
+    <span class="rating-chip active" data-rating="all" onclick="setRatingChip('all')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;letter-spacing:.05em;">ALL</span>
+    <span class="rating-chip" data-rating="BUY" onclick="setRatingChip('BUY')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--green-bd);background:var(--s3);color:var(--green);cursor:pointer;letter-spacing:.05em;">BUY</span>
+    <span class="rating-chip" data-rating="WAIT" onclick="setRatingChip('WAIT')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--wait-bd);background:var(--s3);color:var(--purple);cursor:pointer;letter-spacing:.05em;">WAIT</span>
+    <span class="rating-chip" data-rating="AVOID" onclick="setRatingChip('AVOID')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--red-bd);background:var(--s3);color:var(--red);cursor:pointer;letter-spacing:.05em;">AVOID</span>
+  </div>
+  <div style="display:flex;gap:6px;">
+    <button id="groupBtn" onclick="toggleSectorGroup()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text2);cursor:pointer;letter-spacing:.05em;">GROUP BY COUNTRY / SECTOR</button>
+    <button id="themeToggleBtn" onclick="toggleTheme()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text2);cursor:pointer;letter-spacing:.05em;" title="Toggle light/dark mode">☾ DARK</button>
+    <button onclick="scrollToBuys()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--cyan);background:var(--s3);color:var(--cyan);cursor:pointer;letter-spacing:.05em;">↑ TOP BUYS</button>
+  </div>
+  <div id="filterCount" style="margin-left:auto;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+</div>
+
+<!-- Top Conviction Strip: surfaces highest-asymmetry BUYs above-the-fold -->
+<div id="convictionStrip" class="conviction-strip" style="padding:12px 28px;background:linear-gradient(90deg, var(--surface) 0%, var(--s2) 100%);border-bottom:1px solid var(--border);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div>
+      <div style="font-family:'Instrument Serif',serif;font-size:14px;font-style:italic;color:var(--text);">Top conviction</div>
+      <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:1px;">BUY-rated · ranked by SQ × upside</div>
+    </div>
+    <button onclick="document.getElementById('convictionStrip').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;">×</button>
+  </div>
+  <div id="convictionCards" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;"></div>
+</div>
+
+<div class="table-wrap">
+  <table id="watchlistTable">
+    <thead>
+      <!-- Group label row -->
+      <tr class="thead-groups">
+        <th colspan="4"></th>
+        <th colspan="3" class="col-group-label">Live Price</th>
+        <th colspan="2" class="col-group-label">vs Report</th>
+        <th colspan="2" class="col-group-label">PW Target</th>
+        <th colspan="2" class="col-group-label">Entry</th>
+        <th></th>
+        <th></th>
+      </tr>
+      <!-- Column header row -->
+      <tr id="theadRow">
+        <th onclick="sortTable(0)" class="sortable" data-col="0">Ticker <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(1)" class="sortable" data-col="1">Name <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(2)" class="sortable" data-col="2">Rating <span class="sort-icon">⇅</span></th>
+        <th>Priority</th>
+        <th onclick="sortTable(3)" class="sortable" data-col="3">SQ / Dis <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(4)" class="sortable" data-col="4">Px <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(5)" class="sortable" data-col="5">Chg <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(6)" class="sortable" data-col="6">52W <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(7)" class="sortable" data-col="7">Report Px <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(8)" class="sortable" data-col="8">Δ% <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(9)" class="sortable" data-col="9">Target <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(10)" class="sortable" data-col="10">Upside <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(11)" class="sortable" data-col="11">Entry Px <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(12)" class="sortable" data-col="12">Δ% <span class="sort-icon">⇅</span></th>
+        <th onclick="sortTable(13)" class="sortable" data-col="13">Sector <span class="sort-icon">⇅</span></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="watchlistBody"></tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL CARD
+════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-close-bg" onclick="closeCard()"></div>
+  <div class="card-shell HOLD" id="cardShell">
+
+    <!-- ACTION HEADER -->
+    <div class="action-header">
+      <div class="action-left">
+        <span class="action-badge HOLD" id="cardActionBadge">HOLD / WAIT</span>
+        <div>
+          <div class="action-instruction" id="cardInstruction">—</div>
+          <div class="action-trigger"    id="cardTrigger">—</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div>
+          <div class="stale-badge fresh" id="cardStaleBadge">Today</div>
+        </div>
+        <div class="score-cluster">
+          <div class="score-box">
+            <div class="score-val" id="cardSQ" style="color:var(--amber)">6</div>
+            <div class="score-lbl">SQ Score</div>
+          </div>
+          <div class="score-divider"></div>
+          <div class="score-box">
+            <div class="score-val" id="cardDislocation" style="color:var(--amber)">6 <span style="font-size:11px;color:var(--text3)" id="cardDislocReport">(6)</span></div>
+            <div class="score-lbl">Dislocation</div>
+          </div>
+        </div>
+        <div>
+          <button class="refresh-btn" id="refreshBtn" onclick="liveRefresh()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Live Refresh
+          </button>
+          <button class="pdf-btn" onclick="printCard()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+            Export PDF
+          </button>
+          <div class="last-refreshed" id="lastRefreshed">Never refreshed</div>
+        </div>
+        <div class="close-card-btn" onclick="closeCard()">×</div>
+      </div>
+    </div>
+
+    <!-- thesis banner -->
+    <div class="thesis-banner" id="thesisBanner"></div>
+
+    <!-- ZONE 1 -->
+    <div class="zone1">
+      <div class="zone1-left">
+        <div class="stock-title">
+          <div>
+            <div class="stock-ticker" id="z1Ticker">—</div>
+          </div>
+          <div>
+            <div class="stock-name" id="z1Name">—</div>
+            <div class="stock-meta" id="z1Meta"></div>
+          </div>
+        </div>
+        <div id="z1CompanyIntro" style="display:none;margin-bottom:10px;padding:9px 12px;background:var(--s2);border:1px solid var(--border);border-radius:5px;border-left:3px solid var(--blue)"><div style="font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:4px">Company Overview</div><div id="z1CompanyIntroText" style="font-size:11px;color:var(--text2);line-height:1.6"></div></div>
+        <div class="section-label">⚙ Industry Analysis</div>
+        <div class="industry-stats-grid" id="z1IndustryStats"></div>
+        <div id="z1IndustryPeers"></div>
+        <div style="margin-top:4px"><div class="industry-drivers" id="z1IndustryDrivers"></div></div>
+        <div class="section-label" style="margin-top:10px">📋 Investment Thesis &amp; Risks</div>
+        <ul class="bullet-list" id="z1Bullets"></ul>
+        <div id="z1RisksBullets"></div>
+        <div class="section-label">🏰 Competitive Moat</div>
+        <div class="moat-grid" id="z1Moat"></div>
+        <div class="section-label" style="margin-top:10px">🔄 Better Alternative?</div>
+        <div style="padding:8px 10px;background:var(--s2);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--text2);line-height:1.4" id="z1BetterAlt">—</div>
+        <div class="section-label" style="margin-top:10px">📈 Earnings &amp; Returns Profile</div>
+        <div class="fin-headline" id="z1FinHeadline"></div>
+        <div class="fin-table-wrap" id="z1FinTableWrap" style="display:none">
+          <table class="fin-table" id="z1FinTable"></table>
+        </div>
+        <div class="fin-strip" id="z1FinStrip" style="display:none"></div>
+        <div style="font-size:9px;color:var(--text3);margin-top:4px;line-height:1.4;font-style:italic;" id="z1FinNote">—</div>
+      </div>
+      <div class="zone1-right">
+        <div>
+          <div class="section-label">Price &amp; Target</div>
+          <div class="price-numbers">
+            <div class="price-item">
+              <div class="price-item-label">Live Price</div>
+              <div class="price-item-value live" id="z1LivePrice">—</div>
+              <div class="price-item-sub" id="z1PriceChg">—</div>
+            </div>
+            <div class="price-item">
+              <div class="price-item-label">Watchlist Entry</div>
+              <div class="price-item-value" style="color:var(--cyan)" id="z1Entry">—</div>
+              <div class="price-item-sub" id="z1EntryPct">—</div>
+            </div>
+            <div class="price-item">
+              <div class="price-item-label">PW Target</div>
+              <div class="price-item-value gold" id="z1PWTarget">—</div>
+              <div class="price-item-sub" id="z1PWUpside" style="color:var(--green)">—</div>
+            </div>
+            <div class="price-item">
+              <div class="price-item-label">Report Price</div>
+              <div class="price-item-value" id="z1ReportPrice">—</div>
+              <div class="price-item-sub" id="z1ReportDate">—</div>
+            </div>
+          </div>
+          <div id="z1EntryNote" style="font-size:9px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;"></div>
+          <div id="z1EntryTrigger" style="font-size:9px;color:var(--cyan);margin-top:2px;font-family:'DM Mono',monospace;line-height:1.4;"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="section-label">Scenario Pricing (Probability Weighted)</div>
+          <div class="pwt-row" id="z1PWTRow"></div>
+          <div class="pwt-ratio" id="z1PWTRatio"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="section-label">📊 Score Breakdown</div>
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;">🔵 Structural Quality <span id="z1SQScoreInline" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600"></span></div>
+            <div class="score-explain-grid" id="z1SQExplain"></div>
+          </div>
+          <div style="margin-top:8px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;">🟡 Tactical Dislocation <span id="z1DisScoreInline" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600"></span></div>
+            <div class="score-explain-grid" id="z1DisExplain"></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="section-label">Price Spectrum</div>
+          <div class="range-bar-wrap" id="rangeBarWrap">
+            <div class="range-bar-section">
+              <div class="range-bar-section-label">▸ Live vs Scenarios (Bear · PW Target · Bull)</div>
+              <div class="range-bar-above" id="rangeAbove1"></div>
+              <div class="range-bar-outer" id="rangeBar1"><div class="range-bar-fill"></div></div>
+              <div class="range-bar-ends" id="rangeEnds1"></div>
+              <div class="range-legend" id="rangeLegend1"></div>
+            </div>
+            <div class="range-bar-section">
+              <div class="range-bar-section-label">▸ Live &amp; Report vs 52-Week Range</div>
+              <div class="range-bar-above" id="rangeAbove2"></div>
+              <div class="range-bar-outer" id="rangeBar2"><div class="range-bar-fill"></div></div>
+              <div class="range-bar-ends" id="rangeEnds2"></div>
+              <div class="range-legend" id="rangeLegend2"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="section-label">Multiples vs History</div>
+          <div class="multiples-grid" id="z1Multiples"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="section-label">📊 Watchlist: P/E vs Forward EPS Growth</div>
+          <canvas id="scatterCanvas" style="width:100%;height:220px;border-radius:5px;background:var(--s2);border:1px solid var(--border)"></canvas>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">Bubble size = margin of safety. Outliers (P/E &gt;60x or growth &lt;0%) excluded. Current stock highlighted.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE 2 -->
+    <div class="zone2">
+      <div class="section-label">Key Investor Debates</div>
+      <div class="debates-grid" id="debatesGrid"></div>
+      <div class="net-sentiment">
+        <div class="net-sentiment-label">Net Sentiment</div>
+        <span class="net-sentiment-badge MILDLY_BULLISH" id="netSentimentBadge">MILDLY BULLISH</span>
+        <div>
+          <div class="net-sentiment-text" id="netSentimentText">—</div>
+          <div class="thesis-hinge" id="thesisHinge">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE 3 — earnings quality note only -->
+    <div style="border-bottom:1px solid var(--border); padding:10px 22px;">
+      <div style="font-size:10px; color:var(--text3); font-family:'DM Mono',monospace;" id="finNote"></div>
+    </div>
+
+    <!-- ZONE 4 -->
+    <div class="zone4">
+      <div class="zone4-orig">
+        <div class="section-label">📋 Original Capital Allocation (Per Report)</div>
+        <div class="cap-final-rec HOLD" id="capOrigRec">
+          <div class="cap-final-label">▸ Final Recommendation</div>
+          <div class="cap-final-text" id="adviceBox">—</div>
+        </div>
+        <div class="conviction-trigger" id="convictionTriggerBox" style="display:none">
+          <div class="conviction-trigger-label">★ Conviction Change Triggers</div>
+          <div class="conviction-trigger-text" id="convictionTriggerText">—</div>
+        </div>
+      </div>
+      <div class="zone4-updated">
+        <div class="section-label">🤖 Updated Capital Allocation (Live AI Assessment)</div>
+
+        <div class="updated-callbox">
+          <div class="updated-callbox-header">
+            <span class="updated-callbox-title">▸ Final Recommendation</span>
+            <span class="updated-callbox-time" id="assessmentTime">Not refreshed</span>
+          </div>
+          <div class="updated-callbox-body" id="updatedAdvice">
+            <span style="color:var(--text3);font-size:11px;">Press <strong style="color:var(--blue)">Live Refresh</strong> to pull latest AI assessment.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /card-shell -->
+</div><!-- /modal-overlay -->
+
+<script src="stocks-data.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   STOCK DATA STORE
+   Add new stocks here following the same schema.
+   Each stock maps directly to a report.
+═══════════════════════════════════════════════════ */
+// STOCKS loaded from stocks-data.js
+const PERSIST_FIELDS = [
+  'livePrice','livePxChange','week52High','week52Low','liveMarketCap','liveFwdPE',
+  'dislocationScore','netSentiment',
+  '_cachedAdviceHTML','_cachedAssessmentTime','_cachedLastRefreshed',
+  '_cachedThesisBanner','_cachedActionBadge','_lastRefreshPrice',
+  '_cachedDebateUpdates','_cachedInstruction','_cachedTrigger','_cachedCapRating'
+];
+
+const _saveIndicator = (() => {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:14px;right:18px;font-size:10px;font-family:"DM Mono",monospace;' +
+    'color:var(--green);background:var(--surface);border:1px solid var(--border2);' +
+    'padding:3px 9px;border-radius:4px;opacity:0;transition:opacity .4s;z-index:9999;pointer-events:none';
+  document.body.appendChild(el);
+  return el;
+})();
+
+function _flashSave(msg) {
+  _saveIndicator.textContent = msg;
+  _saveIndicator.style.opacity = '1';
+  clearTimeout(_flashSave._t);
+  _flashSave._t = setTimeout(() => { _saveIndicator.style.opacity = '0'; }, 2000);
+}
+
+async function persistSave() {
+  const snapshot = {};
+  for (const [ticker, s] of Object.entries(STOCKS)) {
+    const entry = {};
+    for (const f of PERSIST_FIELDS) {
+      if (s[f] !== undefined) entry[f] = s[f];
+    }
+    if (Object.keys(entry).length) snapshot[ticker] = entry;
+  }
+  try {
+    localStorage.setItem('wl_state', JSON.stringify(snapshot));
+    _flashSave('💾 Saved · ' + new Date().toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'}));
+  } catch (e) {
+    console.warn('[persist] localStorage save error:', e.message);
+  }
+}
+
+async function persistLoad() {
+  try {
+    const raw = localStorage.getItem('wl_state');
+    if (!raw) return;
+    const snapshot = JSON.parse(raw);
+    let loaded = 0;
+    for (const [ticker, saved] of Object.entries(snapshot)) {
+      if (!STOCKS[ticker]) continue;
+      for (const f of PERSIST_FIELDS) {
+        if (saved[f] !== undefined) STOCKS[ticker][f] = saved[f];
+      }
+      updateTableRow(STOCKS[ticker]);
+      loaded++;
+    }
+    if (loaded) console.log('[persist] Loaded state for', loaded, 'tickers');
+  } catch (e) {
+    console.warn('[persist] localStorage load error:', e.message);
+  }
+}
+
+// ── Patch applyPriceString to auto-save after price update ──
+const _origApplyPriceString = applyPriceString;
+applyPriceString = function() {
+  _origApplyPriceString();
+  persistSave();
+};
+
+// ── Patch refreshAllPrices (Google Sheet) to auto-save ──
+const _origRefreshAllPrices = refreshAllPrices;
+refreshAllPrices = async function() {
+  await _origRefreshAllPrices();
+  persistSave();
+};
+
+// ── Patch liveRefresh (AI assessment) to auto-save after completion ──
+const _origLiveRefresh = liveRefresh;
+liveRefresh = async function() {
+  await _origLiveRefresh();
+  persistSave();
+};
+
+/* ═══════════════════════════════════════════════════
+   ENRICHMENT DATA — moat strengths, score explanations, industry analysis
+   Applied post-definition to avoid modifying original stock strings
+═══════════════════════════════════════════════════ */
+(function enrichStocks() {
+  // Default moat strengths based on label keywords
+  function inferMoatStrength(label) {
+    var l = label.toLowerCase();
+    if (/scale|switching|lock-in|propriet|network effect|telemetry|perpetual|asic/.test(l)) return 'strong';
+    if (/brand|barrier|loyalty|data|r&d|insurance|artist|sponsor|silicon|platform|vertical/.test(l)) return 'moderate';
+    return 'moderate';
+  }
+
+  // Add strength to all moat items that lack it
+  Object.values(STOCKS).forEach(function(s) {
+    if (s.moatItems) {
+      s.moatItems.forEach(function(m) {
+        if (!m.strength) m.strength = inferMoatStrength(m.label);
+      });
+    }
+  });
+
+  // Score explanations and industry data per stock
+  var enrichment = {
+    CCL: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '7% vs 9% — spread negative, below cost of capital', sentiment: 'negative' },
+        { factor: 'Revenue Growth', detail: '+6.4% YoY on record EBITDA + dividend reinstatement', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Oligopoly leader (~40% share) but no fuel hedging vs peers', sentiment: 'neutral' },
+        { factor: 'Balance Sheet', detail: '$28B debt, 3.6x Net D/EBITDA — improving but still elevated', sentiment: 'negative' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '10.4x fwd P/E — below mid-cycle range (12-16x)', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'Over-sold on fuel spike fears and macro uncertainty', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+24% to probability-weighted target — moderate', sentiment: 'neutral' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 earnings Mar 25 is imminent make-or-break signal', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'TAM',value:'$78B',sub:'~5%/yr growth'},{label:'CCL Share',value:'~40%',sub:'Market leader'},{label:'RCL Share',value:'~25%',sub:'#2 player'},{label:'Penetration',value:'<4%',sub:'of $2T leisure'}],
+        peers: [{name:'CCL',pe:'10.4x',revGrowth:'+6%',sq:5,dis:7,moat:'Scale',moatDetail:'~40% global capacity share; 9 brands across all price tiers; fleet scale drives port leverage'},{name:'RCL',pe:'19.2x',revGrowth:'+18%',sq:8,dis:4,moat:'Destinations',moatDetail:'Private destination walled garden; highest ROIC in sector at 16%; premium brand mix'},{name:'NCLH',pe:'7.8x',revGrowth:'+10%',sq:5,dis:6,moat:'Brand',moatDetail:'Premium/luxury niche via Oceania+Regent; highest leverage risk; cheapest multiple in group'}],
+        drivers: [{text:'Post-COVID pent-up demand still normalising upward',type:'bull'},{text:'Private destinations creating walled-garden economics',type:'bull'},{text:'Caribbean capacity +14% in 2026 — potential pricing pressure',type:'bear'},{text:'Consumer discretionary exposure in weakening macro',type:'bear'}]
+      }
+    },
+    AMZN: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~10% vs ~10% — at breakeven, spread at inflection point', sentiment: 'neutral' },
+        { factor: 'Revenue Growth', detail: '+12.4% YoY with 30% EPS growth — exceptional trajectory', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: '3 compounding engines (AWS, Ads, Retail) — diversified dominance', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: 'FCF collapsed to $11.2B from $38.2B — capex ROIC uncertainty', sentiment: 'negative' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '27x fwd — cheapest since 2023 on 18x-80x 10yr range', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: '$200B capex shock creating sentiment dislocation, not earnings', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+22% to target — solid asymmetry with 30% EPS growth', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 2026 earnings Apr 23 — AWS >22% is binary signal', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'Cloud TAM',value:'$400B+',sub:'+25% YoY'},{label:'AWS Share',value:'30%',sub:'vs Azure 22%'},{label:'Ad Revenue',value:'$69B',sub:'+22% YoY'},{label:'AWS Backlog',value:'$244B',sub:'+40% YoY'}],
+        peers: [{name:'AMZN',pe:'27.2x',revGrowth:'+11%',sq:9,dis:5,moat:'Scale+AI',moatDetail:'AWS #1 cloud at 31% share; Prime flywheel 200M+ members; advertising $56B run-rate — 3 compounding businesses'},{name:'MSFT',pe:'30.0x',revGrowth:'+16%',sq:9,dis:4,moat:'Azure+OpenAI',moatDetail:'Azure fastest-growing hyperscaler; OpenAI equity + Copilot embedding across Office/Teams; 28% ROIC'},{name:'GOOG',pe:'20.5x',revGrowth:'+12%',sq:8,dis:6,moat:'Search+GCP',moatDetail:'92% search share; GCP accelerating; 22% ROIC; cheapest of hyperscalers on earnings — AI risk overstated'}],
+        drivers: [{text:'AI workloads driving structural step-up in cloud demand',type:'bull'},{text:'Advertising at $69B growing 22% — undervalued margin engine',type:'bull'},{text:'Azure grew 39% vs AWS 20-24% — share erosion risk',type:'bear'},{text:'FCF collapsed to $11.2B from $38.2B on $200B capex',type:'bear'}]
+      }
+    },
+    ADBE: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~45% vs ~12% — +33pp spread, best-in-class software', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+10.5% YoY with 30% net margins — world-class compounder', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Enterprise switching costs insurmountable; Firefly IP moat unique', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: 'Near-zero net debt, 89% gross margins, $10B OCF', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '11x fwd — below historical floor of 15x, <3rd percentile', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'SaaSpocalypse treating AI as existential; earnings show none', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+51% to target — extreme asymmetry from pricing error', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 FY26 earnings Mar 12 — imminent beat triggers re-rating', sentiment: 'positive' }
+      ],
+      industryData: {
+        stats: [{label:'Creative TAM',value:'$63B+',sub:'Expanding w/ AI'},{label:'Recurring Rev',value:'93%+',sub:'SaaS model'},{label:'Gross Margin',value:'89%',sub:'Best-in-class'},{label:'AI-first ARR',value:'$250M+',sub:'New monetisation'}],
+        peers: [{name:'ADBE',pe:'11.1x',revGrowth:'+10%',sq:8,dis:7,moat:'Switching+IP',moatDetail:'Creative Cloud de facto standard; 45% ROIC; AI Firefly embedded natively — threat absorbed into product'},{name:'CRM',pe:'26x',revGrowth:'+9%',sq:7,dis:5,moat:'Platform',moatDetail:'#1 CRM globally; Agentforce AI layer building new ARR; deep enterprise switching costs via data gravity'},{name:'FIGM',pe:'Private',revGrowth:'N/A',sq:7,dis:'—',moat:'Collab UX',moatDetail:'Dominant collaborative design platform; blocked Adobe acquisition → independent; IPO candidate'}],
+        drivers: [{text:'Firefly only enterprise-safe gen AI — legal moat vs competitors',type:'bull'},{text:'750M+ users create network effects no point solution replicates',type:'bull'},{text:'Canva, Midjourney, Sora eroding SMB/prosumer pricing power',type:'bear'},{text:'Goldman Sachs Sell rating creating self-reinforcing sentiment spiral',type:'bear'}]
+      }
+    },
+    META: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~20% vs ~10% — +10pp spread, strong value creation', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+22% organic at scale ($170B+) — exceptional for mega-cap', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: '3.4B DAP; 82% gross margins; AI-first ad platform', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: 'Net cash + $50B buybacks vs $60B+ AI capex commitment', sentiment: 'neutral' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '21.4x fwd — below 5yr median despite strongest growth', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'Capex cycle volatility creating episodic buying opportunities', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+23% to target — solid risk/reward at 21x on 22% growth', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 2026 earnings Apr 30 — operating income trajectory key', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'DAP',value:'3.35B',sub:'Daily Active People'},{label:'Ad Revenue',value:'$170B+',sub:'+22% organic'},{label:'Gross Margin',value:'82%',sub:'Stable'},{label:'AI Capex',value:'$60B+',sub:'FY2026 guide'}],
+        peers: [{name:'META',pe:'21.4x',revGrowth:'+21%',sq:9,dis:5,moat:'Network+Data',moatDetail:'3B+ DAU across family of apps; ad targeting moat from proprietary social graph; Reality Labs optionality'},{name:'GOOG',pe:'20.5x',revGrowth:'+12%',sq:8,dis:6,moat:'Search+YT',moatDetail:'92% search share; YouTube #2 streaming platform; cheapest large-cap AI infrastructure play'},{name:'SNAP',pe:'45x',revGrowth:'+14%',sq:4,dis:3,moat:'Gen-Z reach',moatDetail:'Gen-Z engagement niche; 2% ROIC; no durable moat vs Meta; perpetual underdog in ad market'}],
+        drivers: [{text:'AI-driven ad targeting improvements lifting ROAS',type:'bull'},{text:'Reels monetisation efficiency closing gap with Feed',type:'bull'},{text:'$60B+ AI capex with uncertain near-term ROIC',type:'bear'},{text:'Regulatory overhang (EU DMA, US antitrust) ongoing',type:'bear'}]
+      }
+    },
+    CDW: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~12% vs ~10% — positive spread, adequate value creation', sentiment: 'neutral' },
+        { factor: 'Revenue Growth', detail: '+6.8% YoY with 28% EPS growth expected through 2028', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: '#1 IT solutions provider to mid-market — trusted advisor moat', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: '3.0x Debt/EBITDA — manageable; active buyback + 2.1% div', sentiment: 'neutral' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '14.3x fwd — COVID-era multiple on a non-COVID business', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: '-34% drawdown pricing worst-case DOGE spending cuts', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+37% to target — strong asymmetry at trough valuation', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 2026 earnings — validates recovery trajectory', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'IT Solutions TAM',value:'$500B+',sub:'Growing mid-single'},{label:'CDW Share',value:'~5%',sub:'#1 mid-market'},{label:'Public Segment',value:'38%',sub:'Of revenue'},{label:'PC Refresh',value:'Win10 EOL',sub:'H1-H2 2026'}],
+        peers: [{name:'CDW',pe:'14.3x',revGrowth:'+2%',sq:7,dis:6,moat:'Advisor moat',moatDetail:'~$24B revenue IT solutions distributor; multi-vendor agnostic advisor to SMB/mid-market; sticky recurring managed services'},{name:'INSG',pe:'14x',revGrowth:'+5%',sq:6,dis:5,moat:'Intl diversity',moatDetail:'International focus differentiates from CDW; government/enterprise verticals; smaller scale limits pricing power'},{name:'SHI',pe:'Private',revGrowth:'N/A',sq:6,dis:'—',moat:'Direct channel',moatDetail:'Private direct-model competitor; strong in education/gov verticals; no public valuation benchmark'}],
+        drivers: [{text:'Windows 10 EOL driving PC refresh cycle in 2026',type:'bull'},{text:'AI infrastructure advisory services expanding TAM',type:'bull'},{text:'DOGE federal IT spending cuts — 38% revenue exposure',type:'bear'},{text:'Tariff-driven hardware cost inflation risk',type:'bear'}]
+      }
+    },
+    KKR: {
+      sqExplain: [
+        { factor: 'FRE Quality', detail: 'FRE margin 69% confirms strong recurring unit economics', sentiment: 'positive' },
+        { factor: 'AUM Growth', detail: '+17% YoY at $744B — accelerating structural growth', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Top-5 global alt manager; 42% perpetual capital', sentiment: 'positive' },
+        { factor: 'Capital Return', detail: '$118B dry powder; 7th consecutive dividend increase', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '15.4x normalised — 15th-20th percentile of own range', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'Credit-fear discount applied to IG-quality credit book', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+13% to target with $19B embedded exit gains upside', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'H1 2026 exit market reopening + Q1/Q2 FRE validation', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'Alt AUM Total',value:'$15T+',sub:'Growing 12% CAGR'},{label:'KKR AUM',value:'$744B',sub:'+17% YoY'},{label:'Perpetual Capital',value:'42%',sub:'Of AUM'},{label:'Dry Powder',value:'$118B',sub:'Deployment ready'}],
+        peers: [{name:'KKR',pe:'15.4x',revGrowth:'+20%',sq:8,dis:5,moat:'Brand+Scale',moatDetail:'$578B AUM; infrastructure/real assets expansion diversifying beyond PE; strong retail channel build-out'},{name:'APO',pe:'14.5x',revGrowth:'+23%',sq:8,dis:6,moat:'Credit/ABF',moatDetail:'#1 in asset-backed finance; Athene insurance float as permanent capital; FRE compounding fastest in alt space'},{name:'BX',pe:'22x',revGrowth:'+15%',sq:9,dis:4,moat:'Real Assets',moatDetail:'$1T+ AUM; BREIT/BREP dominant real estate franchises; strongest retail distribution; premium multiple justified'}],
+        drivers: [{text:'Democratisation of alts — retail 2-5% vs institutional 20-30%',type:'bull'},{text:'Insurance-linked permanent capital via Global Atlantic',type:'bull'},{text:'Private credit systemic risk narrative',type:'bear'},{text:'Exit market frozen — carry crystallisation delayed',type:'bear'}]
+      }
+    },
+    V: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~27% vs ~9.5% — +17.5pp spread, best-in-class payments', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+11.3% YoY with 70% EBITDA margins — secular compounder', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Global payment rails duopoly; 108% FCF conversion', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: 'Low capex intensity (3.7% of rev); exceptional cash gen', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '24.4x fwd — 15th percentile of 5yr range', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'CCCA regulatory noise compressing multiple; earnings intact', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+21% to target — regulatory discount creating entry', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'CCCA hearings Spring 2026 — defeat removes overhang', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'Global Pay Vol',value:'~$240T',sub:'~55% electronic penetration'},{label:'Visa Network',value:'~$15T processed',sub:'~12% of addressable volume'},{label:'Market Share',value:'~50%',sub:'global purchase vol vs MA ~30%'},{label:'EBITDA Margin',value:'70%+',sub:'Near-zero marginal cost per transaction'}],
+        peers: [{name:'V',pe:'24.4x',revGrowth:'+11.3%',sq:8,dis:5,moat:'Global network moat',moatDetail:'4.5B cards at 100M+ merchants; 70.1% EBITDA margins stable; 27% ROIC vs WACC 9.2%; FCF $21.6B; CCCA regulatory risk 30-40% probability caps near-term re-rating but does not impair structural moat'},{name:'MA',pe:'31x',revGrowth:'+12.2%',sq:8,dis:4,moat:'Multi-rail+VAS strategy',moatDetail:'27% premium to Visa (31x vs 24.4x) with similar growth; multi-rail and VAS mix slightly more advanced; PEG ~2.6x vs Visa ~2.0x — Visa better value at 25% P/E discount for nearly identical quality'},{name:'AXP',pe:'18x',revGrowth:'+8.5%',sq:6,dis:6,moat:'Premium spend closed-loop',moatDetail:'Cheaper at 18x but closed-loop model with lending/credit risk; lower EBIT margin (~25% vs Visa 67%); structurally different and lower-quality business; discount to Visa is justified'},{name:'PYPL',pe:'15x',revGrowth:'+6.8%',sq:4,dis:6,moat:'Checkout/Venmo',moatDetail:'430M active accounts but margin under pressure; Braintree commoditising; Venmo not fully monetised yet'}],
+        drivers: [{text:'Cross-border volumes recovering with travel normalisation',type:'bull'},{text:'VAS growing 20%+ at 70%+ margins — new revenue stream',type:'bull'},{text:'CCCA legislation risk — 3-5% revenue impact if passed',type:'bear'},{text:'16% opex growth outpacing 11% revenue near-term',type:'bear'}]
+      }
+    },
+    ARES: {
+      sqExplain: [
+        { factor: 'FRE Quality', detail: 'FRE margin 41.7% on $623B AUM, growing 29% YoY', sentiment: 'positive' },
+        { factor: 'AUM Growth', detail: '+29% YoY — highest-growth large-cap alt manager', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Largest self-originating direct lender; 85% perpetual', sentiment: 'positive' },
+        { factor: 'Income Buffer', detail: '4.4% dividend yield; 93% perpetual/long-dated fees', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '19x fwd — 35% below 52wk high; GAAP masking $6.48 power', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: '72x trailing P/E illusion scaring off fundamental buyers', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+43% — decisive asymmetry vs 9% bear downside', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 2026 GAAP normalisation as GCP anniversary clears', sentiment: 'positive' }
+      ],
+      industryData: {
+        stats: [{label:'Private Credit',value:'$1.5T→$4T',sub:'By 2030'},{label:'ARES AUM',value:'$623B',sub:'+29% YoY'},{label:'Perpetual AUM',value:'85%',sub:'Of total'},{label:'Wealth AUM',value:'$66B',sub:'+69% YoY'}],
+        peers: [{name:'ARES',pe:'19x',revGrowth:'+18%',sq:8,dis:5,moat:'Credit scale',moatDetail:'$470B AUM; #1 direct lending franchise globally; 65%+ fee-related earnings mix — most defensive in alt space'},{name:'APO',pe:'14.5x',revGrowth:'+23%',sq:8,dis:6,moat:'ABF depth',moatDetail:'Asset-backed finance pioneer; Athene permanent capital; cheapest alt manager on FRE basis — quality at discount'},{name:'KKR',pe:'15.4x',revGrowth:'+20%',sq:8,dis:5,moat:'PE+Infra',moatDetail:'Balanced PE/credit/infra platform; $578B AUM; infrastructure now ~30% of AUM — recurring revenue shift'}],
+        drivers: [{text:'Basel III/IV driving bank retreat — credit expansion',type:'bull'},{text:'401(k) Executive Order unlocking trillions in retail alts',type:'bull'},{text:'~9% software book exposed to AI disruption',type:'bear'},{text:'Falling rates reduce floating-rate income',type:'bear'}]
+      }
+    },
+    DDOG: {
+      sqExplain: [
+        { factor: 'Profitability', detail: 'FCF margin 30%+ and expanding; Rule of 40 score ~58', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+28% YoY at $3.1B — re-accelerating', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Unified observability platform; 85%+ gross retention', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: '$3B+ cash; no debt; expanding FCF margin', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '47x fwd — compressed from 95x with no fundamental change', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'Software sector rotation creating valuation reset', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+34% to target — strong growth at compressed multiple', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 2026 earnings — $100K+ customer growth is key', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'Obs. TAM',value:'$62B+',sub:'By 2028'},{label:'DDOG Rev',value:'$3.1B',sub:'+28% YoY'},{label:'NRR',value:'115%+',sub:'Expanding'},{label:'$100K+ Cust.',value:'3,700+',sub:'Growing 18%'}],
+        peers: [{name:'DDOG',pe:'47x',revGrowth:'+26%',sq:8,dis:4,moat:'Unified platform',moatDetail:'Single-pane observability across logs/metrics/traces/security; 23+ products with cross-sell flywheel; NRR 116%'},{name:'SPLK',pe:'Acquired',revGrowth:'N/A',sq:7,dis:'—',moat:'Legacy SIEM',moatDetail:'Acquired by Cisco 2024; SIEM incumbent but heavy on-prem legacy; cloud transition was incomplete pre-acquisition'},{name:'NEWR',pe:'20x',revGrowth:'+3%',sq:5,dis:5,moat:'Point solution',moatDetail:'APM point solution losing share; consumption model pivot struggling; weak competitive position vs DDOG platform'}],
+        drivers: [{text:'Cloud migration + AI workloads expanding observability demand',type:'bull'},{text:'Platform consolidation favouring unified providers',type:'bull'},{text:'Enterprise spending scrutiny elongating sales cycles',type:'bear'},{text:'Competition from Grafana, AWS CloudWatch',type:'bear'}]
+      }
+    },
+    NVDA: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '~55% vs ~12% — extraordinary value creation', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+114% YoY ($130.5B) — unprecedented at scale', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: '92%+ AI accelerator share; CUDA ecosystem lock-in', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: '80% gross margins; $61B FCF; minimal leverage', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '24.5x fwd — cheapest in 3 years on 50%+ EPS growth', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: 'China export ban + Blackwell fears causing compression', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+29% to target — exceptional growth at low multiple', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q1 FY27 earnings May 28 — Blackwell ramp is signal', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'AI Accel. TAM',value:'$200B+',sub:'By 2027'},{label:'NVDA Share',value:'92%+',sub:'Data center GPU'},{label:'Revenue',value:'$130.5B',sub:'+114% YoY'},{label:'Gross Margin',value:'73%',sub:'Normalising'}],
+        peers: [{name:'NVDA',pe:'24.5x',revGrowth:'+122%',sq:10,dis:5,moat:'CUDA moat',moatDetail:'CUDA ecosystem 10yr switching cost; 80%+ AI training share; Blackwell transition accelerating — no credible challenger'},{name:'AMD',pe:'22x',revGrowth:'+14%',sq:7,dis:6,moat:'Challenger',moatDetail:'MI300X gaining HPC/inference share; credible #2; 8% ROIC vs NVDA 55% shows moat gap; ROCm vs CUDA still wide'},{name:'INTC',pe:'N/A',revGrowth:'-2%',sq:3,dis:4,moat:'Restructuring',moatDetail:'Foundry strategy in turnaround; negative ROIC; lost AI compute race; 18A process key make-or-break milestone'}],
+        drivers: [{text:'$1T+ cumulative AI infra spend 2024-2028',type:'bull'},{text:'Blackwell 4x inference performance — upgrade cycle',type:'bull'},{text:'China export restrictions — $12B+ revenue at risk',type:'bear'},{text:'Custom silicon (TPU, Trainium) eroding lock-in',type:'bear'}]
+      }
+    },
+    RCL: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '15-16% vs ~10% — strong value creation, from 6% in 2019', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+19% CAGR; Perfecta targeting 40%+ EBITDA margin', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Private destination moat + Icon/Oasis hardware unmatched', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: 'Net D/EBITDA 2.9x (from 4.8x) — approaching IG', sentiment: 'positive' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '19.2x — 82nd percentile, limited valuation upside', sentiment: 'negative' },
+        { factor: 'Market Sentiment', detail: 'Fully valued relative to trajectory — not dislocated', sentiment: 'negative' },
+        { factor: 'Upside to PWT', detail: '+11% to target — risk/reward not compelling here', sentiment: 'negative' },
+        { factor: 'Catalyst Proximity', detail: 'Q2 earnings late Apr — Caribbean yield key signal', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'Cruise TAM',value:'$80B+',sub:'<5% penetration'},{label:'RCL Guests',value:'10M+',sub:'Annual'},{label:'Wave Season',value:'Record',sub:'Best 7 weeks'},{label:'Private Dest.',value:'90% by 2028',sub:'Caribbean guests'}],
+        peers: [{name:'RCL',pe:'19.2x',revGrowth:'+18%',sq:8,dis:4,moat:'Destinations',moatDetail:'Perfect Day + private destination walled garden; highest ROIC (16%) in sector; Perfecta plan $21-23 EPS by 2027'},{name:'CCL',pe:'10.4x',revGrowth:'+6%',sq:5,dis:7,moat:'Scale/value',moatDetail:'Largest fleet globally; 9-brand portfolio; cheapest multiple but weakest ROIC; no fuel hedging a structural drag'},{name:'NCLH',pe:'7.8x',revGrowth:'+10%',sq:5,dis:6,moat:'Brand niche',moatDetail:'Oceania+Regent premium/luxury exposure; highest debt/EBITDA; niche brand protects yield but limits scale economics'}],
+        drivers: [{text:'Private destination walled garden insulates from overcapacity',type:'bull'},{text:'Perfecta plan implies $21-23 EPS by 2027',type:'bull'},{text:'Caribbean capacity +8% — pricing pressure outside moat',type:'bear'},{text:'Consumer spending deterioration — discretionary risk',type:'bear'}]
+      }
+    },
+    LYV: {
+      sqExplain: [
+        { factor: 'Earnings Lens', detail: 'Use EV/EBITDA — GAAP distorted by depreciation/amortisation', sentiment: 'neutral' },
+        { factor: 'Revenue Growth', detail: 'Record revenue; deferred revenue +37% signals strong 2026', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: 'Only global-scale live entertainment platform', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: '3.70x Debt/EBITDA — elevated but $3.5B deferred rev', sentiment: 'neutral' }
+      ],
+      dislocationExplain: [
+        { factor: 'EV/EBITDA', detail: '15x — marginally above S&P for dominant platform', sentiment: 'neutral' },
+        { factor: 'Market Sentiment', detail: 'DOJ antitrust binary event suppressing multiple', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+15% to target — capped by regulatory uncertainty', sentiment: 'neutral' },
+        { factor: 'Catalyst Proximity', detail: 'DOJ trial/settlement Mar 2026 — THE binary event', sentiment: 'positive' }
+      ],
+      industryData: {
+        stats: [{label:'Live Events TAM',value:'$100B+',sub:'Growing'},{label:'Tickets Sold',value:'331M',sub:'Through systems'},{label:'2026 Pre-sales',value:'26M',sub:'Double-digit YoY'},{label:'Deferred Rev',value:'$3.5B',sub:'+37% YoY'}],
+        peers: [{name:'LYV',pe:'15x EV/EBITDA',revGrowth:'+12%',sq:7,dis:6,moat:'Global scale',moatDetail:'Only vertically integrated live entertainment platform; 331M tickets/yr; artist relationships + venue ownership create loop'},{name:'MSG',pe:'12x',revGrowth:'+5%',sq:5,dis:5,moat:'Venue play',moatDetail:'Premium NYC venue monopoly (Garden, Sphere); real estate-like economics; limited growth runway vs LYV platform'},{name:'AEG',pe:'Private',revGrowth:'N/A',sq:6,dis:'—',moat:'#2 promoter',moatDetail:'#2 live promoter globally; Coachella/Stagecoach ownership; no public multiple — limits direct valuation comparison'}],
+        drivers: [{text:'26M tickets already sold for 2026 — unprecedented visibility',type:'bull'},{text:'International fans surpassing US for first time',type:'bull'},{text:'DOJ breakup would separate Ticketmaster — model impairment',type:'bear'},{text:'FIFA World Cup stadium constraints summer 2026',type:'bear'}]
+      }
+    },
+    SE: {
+      sqExplain: [
+        { factor: 'ROIC vs WACC', detail: '14% vs 11% — +3pp spread, emerging and expanding rapidly', sentiment: 'positive' },
+        { factor: 'Revenue Growth', detail: '+36% LTM with all 3 segments growing 30%+ simultaneously', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: '#1 SE Asia e-commerce (52% GMV) + fintech + gaming ecosystem', sentiment: 'positive' },
+        { factor: 'Balance Sheet', detail: '$5.7B net cash; FCF inflecting positive; $7.9B loan book NPL 1.1%', sentiment: 'neutral' }
+      ],
+      dislocationExplain: [
+        { factor: 'PEG vs Peers', detail: 'PEG 0.43x vs MELI 2.0x — objectively cheapest EM internet compounder', sentiment: 'positive' },
+        { factor: 'Market Sentiment', detail: '3 consecutive EPS misses creating systematic pessimism on margins', sentiment: 'positive' },
+        { factor: 'Upside to PWT', detail: '+34% to $143 target — strong asymmetry at 23x on 41% growth', sentiment: 'positive' },
+        { factor: 'Catalyst Proximity', detail: 'Q4 earnings Mar 10 — margin direction is binary', sentiment: 'neutral' }
+      ],
+      industryData: {
+        stats: [{label:'SEA E-comm',value:'$264B',sub:'2026E GMV'},{label:'Shopee Share',value:'~52%',sub:'#1 in SE Asia'},{label:'Penetration',value:'12.8%',sub:'Of retail sales'},{label:'Fintech TAM',value:'$50B+',sub:'SEA digital payments'}],
+        peers: [{name:'SE',pe:'23.3x',revGrowth:'+36%',sq:7,dis:7,moat:'Ecosystem',moatDetail:'Shopee+SeaMoney+Garena flywheel; 52% GMV share; SPX logistics'},{name:'MELI',pe:'40x',revGrowth:'+35%',sq:8,dis:5,moat:'LatAm moat',moatDetail:'#1 LatAm e-comm + Mercado Pago fintech; logistics network'},{name:'GRAB',pe:'N/A',revGrowth:'+17%',sq:5,dis:4,moat:'Super-app',moatDetail:'Ride-hail + delivery + fintech; still unprofitable'},{name:'GOTO',pe:'N/A',revGrowth:'+5%',sq:4,dis:3,moat:'Indonesia',moatDetail:'Tokopedia merged; Indonesia-only; margin challenges'}],
+        drivers: [{text:'SE Asia digital economy growing 15%+ annually — structural tailwind',type:'bull'},{text:'Shopee take rate expansion + SPayLater driving profitability inflection',type:'bull'},{text:'TikTok Shop competitive threat — gaining GMV share rapidly',type:'bear'},{text:'Garena gaming revenue at risk of re-decline if Free Fire engagement fades',type:'bear'}]
+      }
+    },
+    DAL: {
+      industryData: {
+        stats: [{label:'Global Air TAM',value:'~$900B',sub:'IATA 2025; US domestic ~$250B'},{label:'Amex Loyalty',value:'$8.2B',sub:'+11% YoY; locked through 2029'},{label:'Non-Main Cabin',value:'~60%',sub:'Of revenue; structural moat'},{label:'Short Interest',value:'100M+',sub:'Members'}],
+        peers: [{name:'DAL',pe:'8.4x',revGrowth:'+4.9%',sq:7,dis:7,moat:'Premium+Loyalty moat',moatDetail:'$8.2B Amex loyalty locked through 2029 (+11% YoY); 60% non-main-cabin revenue; ATL #1 global hub; net debt/EBITDA 1.73x vs AAL 4x+; 26% short interest = squeeze fuel on any positive catalyst'},{name:'UAL',pe:'8-9x',revGrowth:'+5.5%',sq:7,dis:6,moat:'Network breadth',moatDetail:'United Next fleet upgrade is credible premium pivot; comparable P/E to DAL but higher leverage (~2x vs DAL 1.7x); lacks DAL Amex co-brand loyalty moat quality; structurally a tier below DAL'},{name:'AAL',pe:'5.1x',revGrowth:'+4%',sq:3,dis:5,moat:'Scale only',moatDetail:'4x+ debt/EBITDA; no loyalty co-brand advantage; restructuring incomplete; weakest quality in US airline group'}],
+        drivers: [{text:'Premium/business travel structurally above pre-COVID levels',type:'bull'},{text:'SkyMiles/Amex partnership provides non-cyclical high-margin revenue floor',type:'bull'},{text:'WTI oil exposure unhedged — fuel cost spike direct hit to margins',type:'bear'},{text:'Consumer discretionary softening risk to leisure load factors',type:'bear'}]
+      }
+    },
+    INTU: {
+      industryData: {
+        stats: [{label:'SMB Tax TAM',value:'$40B+',sub:'US addressable'},{label:'TurboTax Share',value:'~30%',sub:'DIY e-file'},{label:'QB Online',value:'8M+',sub:'Subscribers'},{label:'Mailchimp',value:'12M+',sub:'Users'}],
+        peers: [{name:'INTU',pe:'28x',revGrowth:'+15%',sq:8,dis:5,moat:'Data network',moatDetail:'Tax+accounting data flywheel; SMB switching costs via QB ecosystem; Mailchimp cross-sell; AI Assist monetisation'},{name:'H&R Block',pe:'12x',revGrowth:'+3%',sq:5,dis:5,moat:'Brand trust',moatDetail:'Physical presence moat for complex returns; AI defensively positioned; no platform flywheel vs INTU'},{name:'BILL',pe:'22x',revGrowth:'+16%',sq:6,dis:5,moat:'AP/AR automation',moatDetail:'SMB accounts payable/receivable platform; embedded in QB workflow; take-rate expansion story still early'}],
+        drivers: [{text:'GenAI embedded in TurboTax/QB unlocking new monetisation tiers',type:'bull'},{text:'Credit Karma + Mailchimp data network cross-sell just beginning',type:'bull'},{text:'IRS free direct file program is structural threat to TurboTax TAM',type:'bear'},{text:'SMB formation slowdown in weak macro hurts QuickBooks subscriber growth',type:'bear'}]
+      }
+    },
+    APO: {
+      industryData: {
+        stats: [{label:'AUM',value:'$651B',sub:'Total assets'},{label:'FRE',value:'$1.9B',sub:'Fee-related earnings'},{label:'Athene Float',value:'$320B+',sub:'Insurance assets'},{label:'ABF Pipeline',value:'$1T+',sub:'Addressable'}],
+        peers: [{name:'APO',pe:'14.5x',revGrowth:'+23%',sq:8,dis:6,moat:'Credit/ABF',moatDetail:'Pioneered asset-backed finance; Athene insurance permanent capital base; FRE compounding fastest in alt space'},{name:'ARES',pe:'19x',revGrowth:'+18%',sq:8,dis:5,moat:'Direct lending',moatDetail:'#1 direct lending globally; 65%+ FRE mix most defensive; pure-play credit commands premium multiple'},{name:'KKR',pe:'15.4x',revGrowth:'+20%',sq:8,dis:5,moat:'PE+Infra',moatDetail:'Balanced PE/credit/infra; $578B AUM; infrastructure now ~30% of mix — recurring revenue shift underway'}],
+        drivers: [{text:'ABF market $20T+ global opportunity — APO has first-mover institutional relationships',type:'bull'},{text:'Athene float provides permanent low-cost capital for credit deployment',type:'bull'},{text:'Epstein/Blue Owl headline contagion suppressing multiple below fundamentals',type:'bear'},{text:'NAIC insurance capital rule changes could constrain Athene asset mix',type:'bear'}]
+      }
+    },
+    PI: {
+      industryData: {
+        stats: [{label:'IIoT TAM',value:'$30B+',sub:'2027E'},{label:'Revenue',value:'~$450M',sub:'LTM'},{label:'Gross Margin',value:'~60%',sub:'Hardware+SW'},{label:'RFID Growth',value:'+20%+',sub:'Annual'}],
+        peers: [{name:'PI',pe:'35x',revGrowth:'+20%',sq:7,dis:5,moat:'IIoT ecosystem',moatDetail:'Industrial IoT platform with proprietary RFID+sensors; vertically integrated hardware+software; sticky OEM relationships'},{name:'ZBRA',pe:'22x',revGrowth:'+8%',sq:7,dis:5,moat:'Enterprise mobile',moatDetail:'Enterprise mobile computing+barcode; $4B+ revenue scale; broader but less focused than PI in pure IIoT'},{name:'OUSTER',pe:'N/A',revGrowth:'+30%',sq:4,dis:4,moat:'LiDAR sensor',moatDetail:'LiDAR for industrial/robotics; still pre-profit; different sensing modality but competes in smart factory buildout'}],
+        drivers: [{text:'Factory automation and smart manufacturing secular buildout',type:'bull'},{text:'RAIN RFID adoption curve just beginning in retail/logistics',type:'bull'},{text:'Hardware commoditisation risk as sensor costs fall industry-wide',type:'bear'},{text:'Customer concentration in top manufacturing verticals',type:'bear'}]
+      }
+    },
+    FTNT: {
+      industryData: {
+        stats: [{label:'SASE TAM',value:'$25B+',sub:'2027E'},{label:'Billings',value:'$6B+',sub:'LTM'},{label:'Deferred Rev',value:'$6.5B+',sub:'Visibility'},{label:'FortiOS Devices',value:'7M+',sub:'Deployed'}],
+        peers: [{name:'FTNT',pe:'32x',revGrowth:'+17%',sq:8,dis:5,moat:'FortiOS platform',moatDetail:'Vertically integrated ASIC+OS platform; single-vendor SASE; deferred revenue $6.5B provides multi-year visibility'},{name:'PANW',pe:'38x',revGrowth:'+14%',sq:8,dis:4,moat:'Platformisation',moatDetail:'Platformisation strategy consolidating multi-product customers; ARR $4B+; premium multiple for best-in-class execution'},{name:'CRWD',pe:'55x',revGrowth:'+25%',sq:9,dis:3,moat:'Falcon platform',moatDetail:'Best endpoint+cloud security platform; Falcon Flex driving consolidation; highest NRR and growth but expensive'}],
+        drivers: [{text:'Cybersecurity spending non-discretionary — recession resilient',type:'bull'},{text:'SASE and OT security (industrial) fastest growing verticals',type:'bull'},{text:'PANW aggressive platformisation discounting creating near-term billings pressure',type:'bear'},{text:'Federal spending freeze/DOGE cuts impact on government contracts',type:'bear'}]
+      }
+    },
+    IREN: {
+      industryData: {
+        stats: [{label:'Hash Rate',value:'50+ EH/s',sub:'Operational target'},{label:'Power Cost',value:'~$25/MWh',sub:'All-in avg'},{label:'BTC Mined',value:'~400+',sub:'Monthly est.'},{label:'AI/HPC',value:'Expanding',sub:'Pivot underway'}],
+        peers: [{name:'IREN',pe:'N/A',revGrowth:'+80%',sq:5,dis:6,moat:'Low-cost power',moatDetail:'Lowest power cost in listed miners; Canadian hydro + Texas wind; AI/HPC pivot adds optionality beyond BTC cycle'},{name:'CLSK',pe:'N/A',revGrowth:'+120%',sq:5,dis:5,moat:'Hash rate scale',moatDetail:'Pure-play Bitcoin miner; aggressive capacity expansion; no AI/HPC hedge — fully exposed to BTC price cycle'},{name:'RIOT',pe:'N/A',revGrowth:'+60%',sq:4,dis:5,moat:'Texas scale',moatDetail:'Texas megasite; power curtailment credits; large but higher cost structure than IREN'}],
+        drivers: [{text:'Post-halving miner consolidation favours lowest-cost operators',type:'bull'},{text:'AI/HPC data centre demand for cheap power creates asset optionality',type:'bull'},{text:'BTC price decline structurally impairs all mining economics simultaneously',type:'bear'},{text:'Regulatory risk on crypto mining energy consumption',type:'bear'}]
+      }
+    },
+    ANET: {
+      industryData: {
+        stats: [{label:'Data Ctr TAM',value:'$50B+',sub:'2027E switching'},{label:'Revenue',value:'$7B+',sub:'LTM'},{label:'Gross Margin',value:'~64%',sub:'Industry-leading'},{label:'Cloud Titans',value:'~35%',sub:'Of revenue'}],
+        peers: [{name:'ANET',pe:'38x',revGrowth:'+20%',sq:9,dis:4,moat:'EOS platform',moatDetail:'EOS single operating system across all hardware; 64% gross margins best-in-class; AI back-end networking winner'},{name:'CSCO',pe:'14x',revGrowth:'+1%',sq:6,dis:6,moat:'Installed base',moatDetail:'Massive installed base switching costs; transitioning to software/subscription; slower growth but dividend + buyback'},{name:'JNPR',pe:'Acquired',revGrowth:'N/A',sq:6,dis:'—',moat:'Campus/WAN',moatDetail:'Acquired by HPE 2024; Mist AI differentiated in campus; data centre not a strength vs ANET'}],
+        drivers: [{text:'AI cluster back-end networking (400G/800G) is ANET\'s fastest growing segment',type:'bull'},{text:'Cloud titans (Meta, MSFT, GOOG) expanding capex — direct ANET revenue',type:'bull'},{text:'Cisco price-cutting in campus/enterprise to defend installed base',type:'bear'},{text:'Customer concentration in hyperscalers creates lumpy revenue quarters',type:'bear'}]
+      }
+    },
+    CRWD: {
+      industryData: {
+        stats: [{label:'ARR',value:'$5.25B',sub:'+22% YoY FY26; Q4 net new ARR $331M'},{label:'NRR',value:'115%',sub:'GRR 97%; best-in-class cyber'},{label:'Falcon Flex ARR',value:'$1.69B',sub:'+120% YoY; driving larger deals'},{label:'Cyber TAM',value:'$240B 2026',sub:'+12.5% per Gartner; AI threats +72%'}],
+        peers: [{name:'CRWD',pe:'88.3x',revGrowth:'+21.7%',sq:8,dis:6,moat:'AI data moat + Falcon platform',moatDetail:'23K+ customers feeding trillions of daily events into Falcon AI; 97% gross retention proven through July 2024 outage; Falcon Flex ARR $1.69B +120% YoY; non-endpoint 40% of ARR growing 50% YoY; 88x fwd P/E at 30th percentile of 70-140x 3yr range'},{name:'PANW',pe:'60x',revGrowth:'+14%',sq:7,dis:4,moat:'Broadest platform breadth',moatDetail:'Broadest network+endpoint bundle but PEG 4.3x vs CRWD 2.9x on lower 14% growth; free-trial platformisation winning greenfield vs CRWD SMB; CRWD leads in endpoint telemetry depth and AI detection performance'},{name:'SentinelOne (S)',pe:'60x',revGrowth:'+32%',sq:5,dis:6,moat:'Automation focus',moatDetail:'Faster revenue growth (+32%) but breakeven vs CRWD 27% non-GAAP EBITDA and $1.24B FCF; smaller telemetry corpus limits AI model advantage at scale vs CRWD — potential PANW acquisition target H1 2026 would intensify enterprise competition'}],
+        drivers: [{text:'Endpoint+cloud security consolidation — customers reducing vendor count',type:'bull'},{text:'CrowdStrike AI Security (Charlotte AI) embedding in SOC workflows',type:'bull'},{text:'July 2024 outage reputational overhang — elevated churn risk in renewal cycle',type:'bear'},{text:'Valuation pricing near-perfection — any growth decel punished severely',type:'bear'}]
+      }
+    },
+    APP: {
+      industryData: {
+        stats: [{label:'Mobile Ad TAM',value:'~$400B in 2025',sub:'12-15% CAGR; perf layer ~$80-100B'},{label:'Software Platform',value:'$4.81B',sub:'+88% YoY; 88% EBITDA margin'},{label:'MAX Gross Spend',value:'$11B+',sub:'Mediation network total ad volume'},{label:'E-comm TAM',value:'5-10x gaming',sub:'Axon Ads Manager expansion vector'}],
+        peers: [
+          {name:'APP',pe:'30x',revGrowth:'+70%',sq:8,dis:4,moat:'Axon flywheel',moatDetail:'Self-reinforcing data flywheel; MAX mediation gives visibility across all mobile ad auctions; 78% EBITDA at near-zero marginal cost'},
+          {name:'TTD',pe:'50x',revGrowth:'+22%',sq:7,dis:3,moat:'Open internet CTV DSP',moatDetail:'Programmatic DSP for brand advertisers; Unified ID 2.0 privacy solution; CTV/retail media growing fastest — PEG 2.3x vs APP 0.65x on lower growth; open internet focus is differentiated but less defensible than APP closed gaming ecosystem; more expensive on growth-adjusted basis'},
+          {name:'U (Unity)',pe:'N/A',revGrowth:'+11%',sq:4,dis:6,moat:'Game engine integration',moatDetail:'Game engine embedded in 60%+ of mobile games; negative ROIC and GAAP losses vs APP 50% ROIC; materially inferior growth trajectory; game engine advantage not translating to ad-tech dominance — confirms APP moat quality premium'},
+          {name:'CRTO',pe:'10x',revGrowth:'+1%',sq:4,dis:7,moat:'Retail media EU',moatDetail:'Cheap at ~10x P/E but low-single-digit growth with no meaningful AI moat; EU retail media niche not a platform; not a comparable quality alternative to APP — illustrates the premium the market assigns to the APP data flywheel quality'},
+          {name:'MGNI',pe:'18x',revGrowth:'+10%',sq:5,dis:5,moat:'SSP scale',moatDetail:'Sell-side programmatic platform; CTV monetisation; margin far below APP; no proprietary AI targeting model — dependent on DSP partners'}
+        ],
+        drivers: [{text:'E-commerce TAM 5-10x gaming — Axon expansion into retail advertising just beginning',type:'bull'},{text:'MAX mediation creates structural information advantage over competing ad networks',type:'bull'},{text:'Apple/Google privacy changes could degrade cross-app targeting efficacy by 30%+',type:'bear'},{text:'Meta and Google competing directly for same mobile gaming ad dollars at scale',type:'bear'}]
+      }
+    },
+    AVGO: {
+      industryData: {
+        stats: [{label:'AI Semi Rev',value:'$20B FY2025',sub:'+65% YoY; $22B Q2 FY2026 guided'},{label:'AI Backlog',value:'$73B',sub:'18 months revenue visibility; 5-6 hyperscalers'},{label:'Hyperscaler Capex',value:'$300B+ CY2026E',sub:'Google +117%, Meta +96%, Amazon +75%'},{label:'EBITDA Margin',value:'68%',sub:'FY2026 guided; VMware 78% op margin ballast'}],
+        peers: [
+          {name:'AVGO',pe:'28.7x',revGrowth:'+24%',sq:8,dis:4,moat:'XPU+VMware',moatDetail:'Custom silicon for Google/Meta/ByteDance with 18-24 month switching cost; VMware 93% GM annuity; Tomahawk networking backbone of all AI clusters'},
+          {name:'NVDA',pe:'35x',revGrowth:'+69%',sq:9,dis:4,moat:'GPU+CUDA ecosystem',moatDetail:'Dominant GPU platform; CUDA 10yr switching cost; higher ROIC (~75%) but trades at 35x fwd (22% premium to AVGO); PEG 1.0x vs AVGO 0.52x — AVGO is cheaper alternative for AI semiconductor exposure on growth-adjusted basis'},
+          {name:'MRVL',pe:'25x',revGrowth:'+27%',sq:6,dis:5,moat:'DPU interconnects',moatDetail:'DPU and custom interconnects complementary to AVGO XPU; 7% ROIC vs AVGO improving 29%; 41% gross margins vs AVGO 65%+; similar P/E to AVGO but clearly inferior quality and no VMware software annuity equivalent'},
+          {name:'AMD',pe:'28x',revGrowth:'+34%',sq:6,dis:5,moat:'MI300X+CPU portfolio',moatDetail:'Comparable 28x fwd P/E to AVGO but narrower AI moat (MI300X vs AVGO custom XPU), lower earnings quality, no software annuity — comparable price, inferior business quality; confirms AVGO premium is warranted'}
+        ],
+        drivers: [{text:'$73B contracted backlog provides 18+ months of AI semi revenue visibility',type:'bull'},{text:'VMware subscription annuity at 93% gross margin creates structural EBITDA floor',type:'bull'},{text:'Hyperscaler capex normalisation in 2027 is the primary cycle risk',type:'bear'},{text:'Customer in-sourcing — Google TPUv5 reducing Broadcom silicon content over time',type:'bear'}]
+      }
+    },
+    CHKP: {
+      industryData: {
+        stats: [{label:'Cyber TAM',value:'$255B (2025)',sub:'Growing to $580B by 2031'},{label:'Revenue',value:'$2.73B',sub:'+6.3% YoY; sub rev $1.93B'},{label:'Gross Margin',value:'87.9%',sub:'Best-in-class; sustained'},{label:'Deferred Rev',value:'$2.18B',sub:'+9% YoY; 9-10 mths visibility'}],
+        peers: [
+          {name:'CHKP',pe:'14.7x',revGrowth:'+6%',sq:7,dis:4,moat:'88% GM+retention',moatDetail:'88% gross margins best-in-class; 95%+ customer retention; 30yr network security heritage; ThreatCloud AI 3B+ decisions/day'},
+          {name:'FORTINET (FTNT)',pe:'30x',revGrowth:'+14%',sq:8,dis:5,moat:'FortiOS+ASIC platform',moatDetail:'Proprietary ASIC delivers 5-10x price/performance vs x86; SASE growing 40% YoY; 53% ROIC vs CHKP 13.5% — commands 2x multiple premium; CHKP cheapest quality cybersecurity name by far but growth gap is real at 6% vs 14%'},
+          {name:'PALO ALTO (PANW)',pe:'50x',revGrowth:'+15%',sq:9,dis:1,moat:'Platform consolidation leader',moatDetail:'32% NGS ARR growth; free-trial platformisation winning large enterprise from CHKP pipeline; primary competitive threat; 3.4x CHKP multiple — higher quality with accelerating growth but not a value alternative to CHKP at current prices'},
+          {name:'CROWDSTRIKE (CRWD)',pe:'60x',revGrowth:'+23%',sq:9,dis:1,moat:'AI-native EDR platform',moatDetail:'Dominant endpoint+cloud security; Falcon Flex driving consolidation; 23% revenue growth vs CHKP 6%; at 60x P/E is dramatically more expensive; competing in different primary segments (CRWD endpoint vs CHKP network) but both competing for platform consolidation wallet'}
+        ],
+        drivers: [{text:'SASE growing 40%+ — new CEO M&A strategy targeting $2B adjacent TAMs',type:'bull'},{text:'88% gross margins + net cash provide buyback fuel even at low growth',type:'bull'},{text:'PANW platformisation giveaways winning enterprise prospects from CHKP pipeline',type:'bear'},{text:'6% revenue growth vs peers at 14-25% — structural relative share loss',type:'bear'}]
+      }
+    },
+    CEG: {
+      industryData: {
+        stats: [{label:'Nuclear Fleet',value:'22 GW',sub:'Irreplaceable; 10-15yr to replicate'},{label:'Fwd EPS (FY26E)',value:'$12.07',sub:'+24.6% CAGR through FY29E'},{label:'DC Demand 2030',value:'134.4 GW',sub:'vs 75.8 GW in 2026; tripling'},{label:'PJM Cap Price',value:'$333/MW-day',sub:'2025 BRA; ~800% above prior auctions'}],
+        peers: [
+          {name:'CEG',pe:'25x',revGrowth:'+8%',sq:7,dis:5,moat:'Nuclear + PPAs',moatDetail:'22 GW irreplaceable nuclear fleet; 15-20yr hyperscaler PPAs at $120-180/MWh; Calpine merger creates 55 GW largest US IPP; no new nuclear possible before 2035'},
+          {name:'VST',pe:'24x',revGrowth:'+15%',sq:7,dis:5,moat:'ERCOT nuclear + gas',moatDetail:'Smaller nuclear fleet (~19 GW) vs CEG 22 GW; ERCOT concentration vs CEG broader geographic diversification; post-Energy Harbor gives nuclear exposure but trades at similar 24x P/E — less diversified nuclear pure-play than CEG'},
+          {name:'NRG',pe:'18x',revGrowth:'+10%',sq:5,dis:6,moat:'Retail platform',moatDetail:'Cheaper at 18x fwd P/E but lacks significant nuclear exposure; retail/consumer model with Vivint is lower structural quality vs CEG irreplaceable nuclear baseload; confirms CEG nuclear scarcity premium is justified at current valuation'},
+          {name:'TLN (Talen)',pe:'N/A',revGrowth:'+20%',sq:5,dis:'N/A',moat:'Colocation pioneer',moatDetail:'Smaller at ~10 GW with heavy Amazon colocation exposure; FERC rejection of Amazon/Talen Nov 2024 is the key regulatory precedent creating uncertainty for CEG colocation strategy — confirms regulatory risk is real but manageable for CEG 22 GW fleet; comparable P/E but smaller and more concentrated than CEG'},
+          {name:'NRG',pe:'18x',revGrowth:'+10%',sq:5,dis:6,moat:'Retail platform',moatDetail:'Cheaper at 18x fwd P/E but lacks significant nuclear exposure; retail/consumer Vivint model is lower structural quality vs CEG irreplaceable nuclear baseload; confirms CEG nuclear scarcity premium is justified flow; lower nuclear content than CEG but cheaper multiple'},
+          {name:'NRG',pe:'12x',revGrowth:'+5%',sq:5,dis:5,moat:'Retail energy',moatDetail:'Retail electricity brand (Reliant, NRG); Vivint Smart Home cross-sell; gas-heavy generation — no nuclear moat; cheapest in IPP peer set'}
+        ],
+        drivers: [{text:'AI data centre power demand creating 24/7 clean baseload scarcity premium',type:'bull'},{text:'IRA nuclear PTC provides regulatory floor at ~$43/MWh',type:'bull'},{text:'FERC/PJM co-location ruling could cap nuclear capacity premium by $2B+ annually',type:'bear'},{text:'DeepSeek-style AI efficiency gains could halve data centre power growth forecasts',type:'bear'}]
+      }
+    },
+    MAR: {
+      industryData: {
+        stats: [{label:'Properties',value:'9,000+',sub:'145 countries; 40 brands'},{label:'Bonvoy Members',value:'271M',sub:'Largest hotel loyalty globally'},{label:'Pipeline',value:'610K rooms',sub:'+6% YoY; 265K under construction'},{label:'RevPAR Guide',value:'+1.5-2.5%',sub:'2026 global guidance'}],
+        peers: [
+          {name:'MAR',pe:'27x',revGrowth:'+6%',sq:7,dis:4,moat:'Loyalty+pipeline',moatDetail:'210M Bonvoy members; 9,000+ properties across 30 brands; 20% ROIC asset-light franchise; record 610K pipeline — 3+ years NUG visibility'},
+          {name:'HLT',pe:'30x',revGrowth:'+7%',sq:8,dis:4,moat:'Fastest NUG leadership',moatDetail:'Fastest NUG at 6-7% vs MAR 4.5-5%; Hilton Honors ~220M members vs MAR 271M; cleaner balance sheet; 10% P/E premium to MAR justified by faster NUG; purest asset-light model; MAR loyalty scale (271M) is the primary differentiator'},
+          {name:'IHG',pe:'18x',revGrowth:'+5%',sq:7,dis:5,moat:'International mix',moatDetail:'Stronger Asia-Pacific/Middle East exposure; Holiday Inn/IHG brand ladder; cheaper multiple than MAR/HLT but lower Bonvoy-equivalent loyalty scale'}
+        ],
+        drivers: [{text:'2026 FIFA World Cup driving 30-40bp RevPAR uplift in host cities',type:'bull'},{text:'Conversion pipeline (30-40% of signings) bypasses construction cycle entirely',type:'bull'},{text:'Elevated interest rates suppressing only 19% of US pipeline in active construction',type:'bear'},{text:'Recession risk drives RevPAR -5% — IMF income falls 40% as hotels cut rates',type:'bear'}]
+      }
+    },
+    NU: {
+      industryData: {
+        stats: [{label:'Customers',value:'131M',sub:'3 countries; 83% monthly active'},{label:'Cost-to-Serve',value:'$0.80/mo',sub:'vs $5-10 incumbents; 19.9% eff. ratio'},{label:'ARPAC',value:'$15/month',sub:'+27% YoY; cross-sell compounding'},{label:'NPL Ratio',value:'7.9%',sub:'184% reserve coverage; threshold 9.0%'}],
+        peers: [
+          {name:'NU',pe:'15.4x',revGrowth:'+27%',sq:7,dis:5,moat:'$0.80 cost moat',moatDetail:'131M customers at $0.80/month cost-to-serve vs $35 for Itaú; 19.9% efficiency ratio globally best-in-class; first-mover LatAm digital banking with 6-country presence'},
+          {name:'MELI',pe:'35x',revGrowth:'+35%',sq:8,dis:3,moat:'E-commerce ecosystem',moatDetail:'MercadoLibre comparable quality with fintech embedded in e-commerce; ROE (~45%) superior to NU; trades at 35x vs NU 15.4x — MELI offers more direct e-commerce exposure; NU offers more direct credit/banking exposure to LatAm financial inclusion at much cheaper valuation'},
+          {name:'INTR',pe:'12x',revGrowth:'+25%',sq:5,dis:7,moat:'Super-app marketplace',moatDetail:'Banco Inter cheaper at 12x P/E but materially lower ROE (12% vs 33%), slower growth, weaker competitive position; discount is justified by inferior economics vs NU — confirms NU ROE premium is earned not priced in smaller TAM'}
+        ],
+        drivers: [{text:'215M unbanked/underbanked Brazilians still addressable at current penetration',type:'bull'},{text:'US bank charter opens $22T market — transformational optionality at zero current cost',type:'bull'},{text:'NPL ratio at 7.9% — consumer credit stress in Brazil macro tightening cycle',type:'bear'},{text:'BRL/USD depreciation risk — 70%+ of revenue is Brazilian Real-denominated',type:'bear'}]
+      }
+    },
+    SN: {
+      industryData: {
+        stats: [{label:'Revenue',value:'$6.4B',sub:'+15.7% YoY FY25; +12% FY26E'},{label:'Gross Margin',value:'49%',sub:'+1100bp from 38% (FY21); structural'},{label:'Robot Vac Share',value:'32%',sub:'vs 15% in 2019; iRobot 22% to 14%'},{label:'International',value:'35% of sales',sub:'Target 50%; UK/Europe underpenetrated'}],
+        peers: [
+          {name:'SN',pe:'16.5x',revGrowth:'+16%',sq:8,dis:4,moat:'Category creation',moatDetail:'Category creation engine launches new markets (air fryer, CREAMi, Slushie) — captures 40-60% share before competitors arrive; 1100bp GM expansion while peers flat'},
+          {name:'BRG.AX (Breville)',pe:'22x',revGrowth:'+8%',sq:7,dis:4,moat:'Precision kitchen premium',moatDetail:'Premium kitchen appliances (Breville/Sage) with 8% revenue growth vs SN 10-16%; comparable ROIC (~15%) but lower growth; 33% P/E premium to SN is unjustified given SN superior growth-adjusted valuation — confirms SN is mispriced at 16.5x'},
+          {name:'SEBF.PA (SEB)',pe:'18x',revGrowth:'+3.5%',sq:6,dis:6,moat:'EU brand portfolio',moatDetail:'SEB at similar 18x P/E but only 3.5% revenue growth vs SN 10-16%; European SDA leader with Tefal/Moulinex; structurally lower growth; SN is superior quality at comparable or lower price — confirming SN is the best growth-adjusted value in global SDA'},
+          {name:'Dyson (private)',pe:'N/A',revGrowth:'+5%',sq:8,dis:'N/A',moat:'Premium brand engineering',moatDetail:'Premium benchmark SN targets at 30-50% above SN ASPs with design/engineering moat; SN mass-premium positioning (comparable performance at 30-50% lower ASP) is the deliberate competitive strategy against Dyson — confirms SN structural growth driver'}
+        ],
+        drivers: [{text:'International at 35% of revenue growing faster than US — decades of runway',type:'bull'},{text:'Premium Ninja brand mix shift driving ARPU expansion and margin uplift',type:'bull'},{text:'China + SE Asia manufacturing tariff escalation could compress gross margins 200-400bp',type:'bear'},{text:'Hit-driven model risk — one year without a breakout product reverts growth to market rate',type:'bear'}]
+      }
+    },
+    ZS: {
+      industryData: {
+        stats: [{label:'SASE TAM',value:'$30B→$60B',sub:'With AI SOC'},{label:'ARR',value:'$2.86B+',sub:'+23% YoY'},{label:'AI Security ARR',value:'$400M+',sub:'Ahead of plan'},{label:'Daily Transactions',value:'500B+',sub:'Security events'}],
+        peers: [
+          {name:'ZS',pe:'36x',revGrowth:'+23%',sq:7,dis:7,moat:'Zero Trust proxy',moatDetail:'Inline proxy architecture uniquely inspects encrypted TLS traffic at cloud speed; 500B daily transactions create self-reinforcing threat intelligence; AI Security $400M ARR ahead of plan'},
+          {name:'PANW',pe:'50x',revGrowth:'+14%',sq:8,dis:4,moat:'Platform breadth',moatDetail:'Broadest security platform (network+endpoint+SASE+SOC); platformisation free-trial strategy winning ZS enterprise pipeline; SASE cloud-native advantage in greenfield'},
+          {name:'NET',pe:'55x',revGrowth:'+27%',sq:7,dis:3,moat:'Edge network',moatDetail:'Global CDN+security edge at 300+ cities; developer-centric zero trust (Cloudflare Access); fastest growing but pre-profit; network moat different from ZS proxy architecture'}
+        ],
+        drivers: [{text:'AI workloads create new attack vectors (LLM exfil, model poisoning) requiring inline inspection',type:'bull'},{text:'Z-Flex bookings +70% QoQ — bundled ZS is directly countering PANW platformisation',type:'bull'},{text:'PANW 12-18 month free trials converting ZS enterprise prospects — real pipeline impact',type:'bear'},{text:'Red Canary acquisition churn adding integration noise to organic ARR metrics',type:'bear'}]
+      }
+    },
+    DVN: {
+      industryData: {
+        stats: [{label:'WTI Sensitivity',value:'~$1.00 EPS',sub:'Per $10/bbl change'},{label:'Delaware Acres',value:'750K+',sub:'Combined; 15+ yr inventory'},{label:'EV/EBITDA',value:'3.79x',sub:'vs 5.5x mid-cycle median'},{label:'FCF Conv.',value:'106%',sub:'Exceptional'}],
+        peers: [
+          {name:'DVN',pe:'12.6x',revGrowth:'+6%',sq:6,dis:7,moat:'Delaware cost',moatDetail:'Top-3 Delaware Basin position with lowest shale unit costs; Coterra merger adds 6-basin diversification; $1B synergy potential; 3.8x EV/EBITDA at fraction of mid-cycle 5.5x'},
+          {name:'EOG',pe:'9x EV/EBITDA',revGrowth:'+2%',sq:8,dis:3,moat:'Premium well focus',moatDetail:'Superior ROIC (~18% vs DVN 10%); lowest-cost premium well strategy; trades at 9x EV/EBITDA (2.4x DVN multiple) — better quality at materially higher price; preferred for quality-over-value investors over DVN'},
+          {name:'FANG (Diamondback)',pe:'6x EV/EBITDA',revGrowth:'+80%*',sq:7,dis:5,moat:'Pure-play Permian scale',moatDetail:'Pure-play Permian after Endeavor acquisition; higher EBITDA margin (~52%) at 6x EV/EBITDA; Permian concentration risk vs DVN multi-basin diversification post-Coterra; comparable quality between DVN and FANG at DVN lower absolute multiple'},
+          {name:'COP',pe:'N/A',revGrowth:'+9%',sq:8,dis:4,moat:'Global diversification',moatDetail:'ConocoPhillips global diversification and scale; similar ROIC (~11%); lower commodity leverage per dollar invested; trades at higher multiple reflecting diversification premium vs DVN US-only pure play; confirms DVN discount is merger optionality not quality deficiency'}],
+        drivers: [{text:'Coterra merger creating top-3 diversified US shale platform with $1B synergy target',type:'bull'},{text:'3.8x EV/EBITDA vs 5.5x mid-cycle historical average — deep cyclical discount',type:'bull'},{text:'WTI oil price decline to $60 eliminates current guidance entirely — primary binary risk',type:'bear'},{text:'Merger integration complexity across 6 basins could delay synergy realisation',type:'bear'}]
+      }
+    },
+    NFLX: {
+      industryData: {
+        stats: [{label:'Subscribers',value:'325M+',sub:'vs 2B+ broadband HH TAM'},{label:'Ad Tier MAUs',value:'190M+',sub:'Targeting ~$3B ad rev FY2026'},{label:'Content Cost/Sub',value:'~$62',sub:'vs $100-150+ for rivals'},{label:'EBITDA Margin',value:'30.2%',sub:'+260bp YoY; 33.3% FY26E'}],
+        peers: [
+          {name:'NFLX',pe:'29.3x',revGrowth:'+16%',sq:8,dis:4,moat:'Content+Ad engine',moatDetail:'$20B content spend creates global library no entrant replicates; 190M+ ad MAUs in only 3 years; 325M subscribers at 19.3% ROIC — best streaming economics by far'},
+          {name:'DIS',pe:'22x',revGrowth:'+13%',sq:6,dis:5,moat:'IP franchises/parks',moatDetail:'Disney+/Hulu/ESPN+ bundle; Marvel/Star Wars IP irreplaceable; streaming now profitable but EBITDA margins ~15% DTC vs NFLX 30%+; structurally more complex business; discount to NFLX justified by inferior streaming quality and capital allocation complexity across parks/linear/DTC'},
+          {name:'PSKY-WBD',pe:'12x',revGrowth:'+8%',sq:4,dis:7,moat:'HBO+CBS Sports content',moatDetail:'Combined Paramount-WBD creates $60B content rival; cheaply valued at ~12x but faces $90B+ combined debt and massive integration risk; 2+ year integration timeline before becoming credible Netflix competitor — near-term execution risk makes it inferior risk-adjusted alternative despite cheap multiple'}],
+        drivers: [{text:'Advertising tier at 60%+ incremental margins — second compounding profit engine just beginning',type:'bull'},{text:'Password crackdown permanently raised the revenue baseline — structural ARPU uplift',type:'bull'},{text:'PSKY-WBD merger creating better-capitalised streaming competitor',type:'bear'},{text:'Content cost inflation if sports/live rights race escalates beyond NFL/WWE',type:'bear'}]
+      }
+    },
+    TCOM: {
+      industryData: {
+        stats: [{label:'China OTA Share',value:'55-60%',sub:'Domestic market; 600M+ users'},{label:'Intl Bookings',value:'+60% YoY',sub:'40% of total; Trip.com brand'},{label:'Net Cash',value:'CNY 47.1B',sub:'45% of mkt cap; $15B USD'},{label:'Gross Margin',value:'80.6%',sub:'Asset-light OTA economics'}],
+        peers: [
+          {name:'TCOM',pe:'12.5x',revGrowth:'+17%',sq:8,dis:7,moat:'China OTA+intl',moatDetail:'~50% China OTA share; 80%+ gross margins; Trip.com international growing 60% YoY; CNY 47B net cash = 45% of market cap — SAMR fine is the only overhang'},
+          {name:'BOOKING (BKNG)',pe:'22x',revGrowth:'+13%',sq:10,dis:3,moat:'Connected Trip global scale',moatDetail:'Dominant Western OTA with ~95% ROIC and 37% EBIT margin; justified premium at 22x vs TCOM 12.5x given no regulatory overhang and superior global scale; higher quality but TCOM discount is entirely SAMR-driven — 43% P/E discount should compress to 15-20% post-resolution'},
+          {name:'EXPEDIA (EXPE)',pe:'15x',revGrowth:'+16%',sq:6,dis:5,moat:'Vrbo B2B platform',moatDetail:'Lower ROIC (~18%) and EBIT margin (~15%) vs TCOM; at comparable 15x P/E but inferior margins and competitive position in Chinese outbound travel — TCOM is higher quality at same or lower multiple'},
+          {name:'MAKEMYTRIP (MMYT)',pe:'higher',revGrowth:'+25%',sq:7,dis:3,moat:'India #1 low penetration',moatDetail:'Faster revenue growth (+25%) in equally underpenetrated India market; trades at premium multiple vs TCOM; different geography play — India underpenetration mirrors China 12% passport penetration story; no net cash buffer or SAMR equivalent discount'}
+        ],
+        drivers: [{text:'China outbound travel growing 20%+ annually — Trip.com is the only credible platform',type:'bull'},{text:'CNY 47B net cash provides SAMR fine buffer and international expansion fuel',type:'bull'},{text:'SAMR investigation — Qunar divestiture would remove 15-20% of domestic revenue',type:'bear'},{text:'China macro weakness reducing premium travel spend and hotel ADR growth',type:'bear'}]
+      }
+    },
+    '2018.HK': {
+      industryData: {
+        stats: [{label:'Revenue',value:'CNY 31.8B',sub:'+16.4% YoY'},{label:'Gross Margin',value:'~22%',sub:'Recovery target 23%+'},{label:'ROIC',value:'~4.7%',sub:'Improving toward 7%'},{label:'Net D/EBITDA',value:'0.4x',sub:'Target net cash 2027'}],
+        peers: [
+          {name:'2018.HK',pe:'12x',revGrowth:'+16%',sq:7,dis:6,moat:'Cross-segment',moatDetail:'Acoustic+Optics+Haptics+Precision in single supplier; 20yr Apple relationship; AI smartphone content upgrade tailwind; FCF conversion ~123%'},
+          {name:'GOERTEK (002241)',pe:'15x',revGrowth:'+12%',sq:6,dis:5,moat:'Acoustic component scale',moatDetail:'#2 globally in acoustic components; lower gross margins (~14% vs AAC 22%); single-segment vs AAC cross-segment integration; no optics, haptics, or thermal capability — primary domestic benchmark'},
+          {name:'LUXSHARE (002475)',pe:'20x',revGrowth:'+18%',sq:7,dis:4,moat:'Apple ecosystem depth',moatDetail:'Apple wearables and assembly modules; higher ROIC (~8%) vs AAC; gaining iPhone structural components — competes for Apple wallet share; different assembly-heavy model but at 2x AAC P/E multiple'},
+          {name:'SUNNY OPTICAL (2382)',pe:'25x',revGrowth:'+20%',sq:8,dis:3,moat:'Lens manufacturing scale',moatDetail:'#1 optics globally; higher ROIC (~10%) and 25x P/E vs AAC 12x — significantly more expensive but illustrates premium for moat clarity; in optics segment competes with AAC WLG proprietary lens technology'}
+        ],
+        drivers: [{text:'AI smartphone content upgrade: heat dissipation doubling, MEMS+haptics +30-40% per device',type:'bull'},{text:'Automotive/PSS expansion: CNY 3.5B Year-1 revenue from NEV design wins',type:'bull'},{text:'Apple supply chain diversification — concentration risk if share shifts to competitors',type:'bear'},{text:'Acoustic segment margin weakness — structural pricing pressure from OEM customers',type:'bear'}]
+      }
+    },
+    '2020.HK': {
+      industryData: {
+        stats: [{label:'China Sportswear',value:'23% share',sub:'#1 market position'},{label:'FILA Revenue',value:'CNY 20B+',sub:'Turnaround proven'},{label:'Other Brands',value:'+61% H1 2025',sub:'Third growth curve'},{label:'Net Cash',value:'CNY 7B',sub:'Fortress balance sheet'}],
+        peers: [
+          {name:'2020.HK',pe:'14.5x',revGrowth:'+14%',sq:7,dis:6,moat:'Multi-brand China',moatDetail:'#1 China market share at 23%; FILA turnaround from lossmaker to CNY 20B brand proves multi-brand execution; Other Brands 61% growth in H1 2025'},
+          {name:'LI NING (2331)',pe:'18x',revGrowth:'+3.9%',sq:6,dis:5,moat:'Guochao pioneer brand',moatDetail:'#2 China sportswear; single-brand model limits TAM vs ANTA multi-brand portfolio; lower gross margin (49.4%) and 5x slower growth; cheaper on PEG but inferior diversification — confirms ANTA multi-brand premium is justified'},
+          {name:'NIKE (NKE)',pe:'22x',revGrowth:'~flat',sq:8,dis:4,moat:'Global brand dominance',moatDetail:'Lost China share to ANTA (25%→20.7% share); Elliott Hill CEO turnaround risk of 1-2pp China share recovery — primary ANTA bear case; more expensive with lower China growth; confirms ANTA structural gain is durable'},
+          {name:'ADIDAS (ADS)',pe:'20x',revGrowth:'+12% cc',sq:7,dis:4,moat:'Lifestyle positioning',moatDetail:'Recovering on Samba/Gazelle cultural moment; smaller China exposure than ANTA; no comparable multi-brand domestic platform — style-driven recovery more cyclical than ANTA structural share gains; comparable multiple but inferior China franchise'}
+        ],
+        drivers: [{text:'Amer Sports (Arc\'teryx/Salomon) portfolio adds premium international brand optionality',type:'bull'},{text:'Other Brands growing 61% — diversification away from core ANTA brand maturation',type:'bull'},{text:'PUMA turnaround risk — EUR 1.5B deployed on a loss-making international brand',type:'bear'},{text:'China consumer sentiment deterioration and Nike recovery threatening domestic share',type:'bear'}]
+      }
+    },
+    '285.HK': {
+      industryData: {
+        stats: [{label:'Revenue',value:'CNY 177B',sub:'+36% YoY FY24'},{label:'AI Server Rev',value:'CNY 3B+',sub:'FY25 target'},{label:'Apple Content',value:'~48%',sub:'Of revenue'},{label:'ROIC (ROCE)',value:'12% trailing',sub:'Improving'}],
+        peers: [
+          {name:'285.HK',pe:'10x',revGrowth:'+36%',sq:7,dis:7,moat:'Titanium+AI server',moatDetail:'Foldable iPhone titanium frame + Jabil iPhone metal frame integration + Nvidia-qualified AI server liquid cooling — three simultaneous content upgrades at trough multiple'},
+          {name:'FOXCONN (2317.TW)',pe:'12x',revGrowth:'+12%',sq:7,dis:5,moat:'Scale global footprint',moatDetail:'#1 EMS at 40% market share; similar P/E to BYDE but single-digit growth vs BYDE double-digit; no AI server or titanium content upgrades — inferior growth profile at comparable valuation; confirms BYDE discount anomaly'},
+          {name:'LUXSHARE (002475)',pe:'20x',revGrowth:'+20%',sq:8,dis:3,moat:'Apple wearables modules',moatDetail:'Higher ROIC (~12%) and gross margin (10.5%) vs BYDE; gaining iPhone assembly share — direct threat to 285.HK Apple wallet allocation; trades at 2x BYDE P/E; Luxshare gaining is the key BYDE bear risk — higher quality but no discount'},
+          {name:'PEGATRON (4938.TW)',pe:'10x',revGrowth:'+5%',sq:5,dis:6,moat:'Notebook/PC diversification',moatDetail:'Similar ~10x P/E to BYDE but 5% growth vs 12%+ and no AI/automotive optionality; notebook/PC focus less strategically positioned — at same multiple as BYDE with meaningfully inferior growth and mix upgrade trajectory'}
+        ],
+        drivers: [{text:'Jabil metal frame acquisition positions BYDE as tier-1 Apple structural component supplier',type:'bull'},{text:'Nvidia-qualified AI server liquid cooling — CNY 5-8B revenue potential in FY26',type:'bull'},{text:'Apple pricing pressure structurally limits EMS gross margins through negotiation cycles',type:'bear'},{text:'Luxshare gaining Apple share — 285.HK concentration risk if allocation shifts',type:'bear'}]
+      }
+    },
+    '1211.HK': {
+      industryData: {
+        stats: [{label:'NEV Units',value:'4.3M+',sub:'FY2024'},{label:'China NEV Share',value:'~27%',sub:'Total market'},{label:'Exports',value:'1.05M',sub:'+200% YoY FY2025'},{label:'Net Cash',value:'CNY 103B',sub:'Fortress balance sheet'}],
+        peers: [
+          {name:'1211.HK',pe:'18.5x',revGrowth:'+29%',sq:7,dis:6,moat:'Vertical integration',moatDetail:'In-house batteries+IGBT chips+motors+body stamping = 15-20% structural cost advantage; Gen2 Blade Battery fast-charge standard; 1.05M exports +200% YoY diversifies from domestic'},
+          {name:'TESLA (TSLA)',pe:'50x',revGrowth:'-9%',sq:8,dis:1,moat:'Software brand premium',moatDetail:'Higher ROIC (~15%) and FSD software monetisation optionality; but negative revenue growth and trades at 2.7x BYD multiple; no comparable volume growth; dramatically more expensive with no growth — confirms BYD structural discount vs quality peer'},
+          {name:'GEELY (175.HK)',pe:'10x',revGrowth:'+81% NEV',sq:5,dis:6,moat:'Multi-brand NEV strategy',moatDetail:'Faster NEV growth rate but lower ROIC (~8%), weaker vertical integration (CATL battery dependency), higher leverage, and unproven Zeekr/Volvo/Lotus multi-brand strategy; no in-house battery or semiconductor capability — cheaper at 10x but structurally inferior'},
+          {name:'VOLKSWAGEN (VOW3)',pe:'5x',revGrowth:'-1%',sq:4,dis:7,moat:'Legacy scale distribution',moatDetail:'Dramatically cheaper at 5x P/E but declining EV share, legacy cost structure, SQ 4 — value trap risk vs BYD structural cost leadership; negative revenue growth; not a quality alternative — illustrates floor if BYD moat erodes structurally'}
+        ],
+        drivers: [{text:'Gen2 Blade Battery fast-charge standard creates consumer preference moat in China NEV',type:'bull'},{text:'Export diversification: Brazil, Thailand, Hungary factories de-risk EU tariff exposure',type:'bull'},{text:'China EV price war compressing domestic gross margins — 35%→27% market share slide',type:'bear'},{text:'EU 17-35% tariff on Chinese EVs limiting European penetration near-term',type:'bear'}]
+      }
+    },
+    '1024.HK': {
+      sqExplain: [
+        { factor: 'Competitive Position', detail: 'Duopolistic market structure — #2 at ~30% user time share; 416M DAU record high; network effects create high switching costs for advertisers and creators', sentiment: 'positive' },
+        { factor: 'ROIC Trajectory', detail: 'ROIC inflected from -12.5% (FY22) to 14% (FY25E), exceeding 12% WACC; incremental ROIC on new capex 20%+; spread widening', sentiment: 'positive' },
+        { factor: 'Balance Sheet Strength', detail: 'Net cash CN¥30.1B; FCF conversion 110%+ (FY25E); ample capacity for AI capex without raising capital; (0.8x) net cash/EBITDA', sentiment: 'positive' },
+        { factor: 'Regulatory / Structural Risk', detail: 'Two fines in 6 weeks (content + e-commerce); VIE structure legal uncertainty; geopolitical risk limits overseas expansion; China discount permanent', sentiment: 'negative' }
+      ],
+      dislocationExplain: [
+        { factor: 'P/E vs History', detail: '9.2x fwd P/E at 5th percentile of post-profitability range (historical 9-33x) — pricing excessive pessimism vs improving fundamentals', sentiment: 'positive' },
+        { factor: 'Growth-Adjusted Valuation', detail: '0.6x PEG ratio (FY26E EPS growth 15%) vs Tencent 1.2x and global internet 1.5-2.0x — severe relative undervaluation on growth-adjusted basis', sentiment: 'positive' },
+        { factor: 'Consensus Disconnect', detail: '37 analysts Strong Buy consensus, avg 12-month target HK$91.49 (+70% upside); multiple compression not earnings downgrade driving gap', sentiment: 'positive' },
+        { factor: 'Upside/Downside Asymmetry', detail: '2.5:1 upside/downside ratio: +39% to HK$74.75 PW target vs -29% to HK$38 bear case; FCF yield 9.1% provides floor', sentiment: 'positive' }
+      ],
+      industryData: {
+        stats: [
+          {label:'DAU',value:'416M',sub:'Record high; +3-5% YoY'},
+          {label:'Revenue FY25E',value:'CN¥142.1B',sub:'+12.0% YoY; +9.6% FY26E'},
+          {label:'EBITDA Margin',value:'20.9%',sub:'FY25E; +680bp YoY from 14.0%'},
+          {label:'Kling AI Rev',value:'US$140M',sub:'FY25; positive gross margins'}
+        ],
+        peers: [
+          {name:'1024.HK',pe:'9.2x',revGrowth:'+12%',sq:7,dis:7,moat:'Duopoly+Kling AI',moatDetail:'~30% China short-video time share; 416M DAU record; lower-tier city dominance vs Douyin urban focus; Kling AI US$140M FY25 at positive gross margins; CN¥30.1B net cash; ROIC 14% vs WACC 12%'},
+          {name:'DOUYIN',pe:'Private',revGrowth:'~30%',sq:9,dis:'—',moat:'TikTok+Douyin scale',moatDetail:'ByteDance-owned; dominant China short-video at ~50% user time share; superior algorithm; not listed — Kuaishou is the only investable proxy for China short-video duopoly'},
+          {name:'TENCENT',pe:'20x',revGrowth:'+8%',sq:8,dis:6,moat:'WeChat ecosystem',moatDetail:'WeChat Channels embedded in 1B+ user app; ecosystem switching costs; lower growth vs Kuaishou but premium governance and diversification; WeChat moat wider but growth ceiling lower'},
+          {name:'BILI',pe:'25x',revGrowth:'+20%',sq:4,dis:3,moat:'Gen-Z niche',moatDetail:'Bilibili long-form ACG video; Gen-Z niche; still loss-making at operating level; structural headwind vs short-form secular; much narrower moat than Kuaishou duopoly position'}
+        ],
+        drivers: [
+          {text:'Ad budget migration: digital channels capturing 70%+ of China ad spend; Kuaishou ARPU +15-20% as ad-tech ROI visibility improves and performance marketing scales',type:'bull'},
+          {text:'E-commerce GMV +15.2% YoY Q3 2025 creates second revenue leg; take rate stable ~1.2%; operating leverage as platform already scaled',type:'bull'},
+          {text:'Kling AI US$140M FY25 at positive gross margins — free optionality on a 9.2x PE multiple; government pro-AI stance supports continued model deployment',type:'bull'},
+          {text:'Douyin capex blitz in lower-tier cities (Tier-3+ was Kuaishou\'s moat) — risk of 3-5pp user time share erosion over 2-3 years',type:'bear'},
+          {text:'Regulatory risk: two fines in 6 weeks; CN¥1B+ fine or mandated algorithm disclosure could wipe 5-8pp EBITDA margin; VIE legal uncertainty',type:'bear'}
+        ]
+      }
+    },
+    '3690.HK': {
+      industryData: {
+        stats: [{label:'Food Delivery Share',value:'70%+',sub:'Held through subsidy war'},{label:'Revenue',value:'CNY 337.6B',sub:'+22% FY2024'},{label:'Net Cash',value:'CNY 107B',sub:'>20% of market cap'},{label:'Riders',value:'7M+',sub:'Active delivery network'}],
+        peers: [
+          {name:'3690.HK',pe:'11.9x',revGrowth:'+22%',sq:7,dis:6,moat:'Rider network+70% share',moatDetail:'70% food delivery share retained despite CN¥100B+ competitor spend — network effects proven; 7M+ rider density creates unit economics competitors cannot match; CNY 107B net cash'},
+          {name:'ALIBABA (9988)',pe:'10x',revGrowth:'+8%',sq:8,dis:5,moat:'Taobao Flash Buy traffic moat',moatDetail:'Taobao Flash Buy now 120M+ daily orders — primary competitive threat leveraging 900M+ Taobao MAU; Alibaba cash flows subsidising attack; different business (diversified) but in food delivery is the attacker — confirms Meituan 70% share retention demonstrates superior network density'},
+          {name:'JD.COM (9618)',pe:'8x',revGrowth:'+5%',sq:6,dis:6,moat:'Supply chain + salary riders',moatDetail:'New food delivery entrant losing CN¥5+/order vs Meituan CN¥2-3; JD Logistics self-operated model proves barrier to entry but founder commitment extends war; cheaper at 8x P/E but negative food delivery ROIC — confirms Meituan unit economics superiority'},
+          {name:'DELIVERY HERO (DHER)',pe:'50x',revGrowth:'+5%',sq:5,dis:2,moat:'Global reach Middle East',moatDetail:'Global food delivery including GCC markets where Keeta is expanding; >50x P/E with inferior profitability — not a cheap alternative; Keeta competing directly in Delivery Hero core GCC markets adds international optionality context'}
+        ],
+        drivers: [{text:'Government anti-involution campaign forces all players to rationalise subsidy spend',type:'bull'},{text:'Keeta HK profitable in 29 months — validates international playbook at zero current valuation',type:'bull'},{text:'Rider social security mandate risk: CN¥10-15B annual structural cost addition',type:'bear'},{text:'Taobao Flash Buy entrenched at 120M+ daily orders — subsidy war may not end quickly',type:'bear'}]
+      }
+    },
+    '2282.HK': {
+      industryData: {
+        stats: [{label:'Market Share',value:'16.1%',sub:'All-time record high'},{label:'ROIC',value:'18.2%',sub:'Highest in Macau sector'},{label:'Mass Mix',value:'Growing',sub:'vs VIP declining'},{label:'Net D/EBITDA',value:'2.2x',sub:'Target 1.2x FY2026'}],
+        peers: [
+          {name:'2282.HK',pe:'8.4x',revGrowth:'+11%',sq:6,dis:5,moat:'Concession+ROIC',moatDetail:'18.2% ROIC highest in Macau sector; 16.1% all-time market share record; 106% FCF conversion — operational excellence masked by governance discount from branding fee'},
+          {name:'SANDS CHINA (1928)',pe:'14x',revGrowth:'+12%',sq:8,dis:4,moat:'Largest IR portfolio retail/MICE',moatDetail:'5 integrated resorts; highest gross margin (~55%) vs MGM China 2 properties; no royalty fee overhang; premium mass and MICE strategy drives recurring revenue; multiple premium vs MGM governance discount is justified — best-in-class Macau operator by asset breadth'},
+          {name:'GALAXY (0027)',pe:'13x',revGrowth:'+8%',sq:8,dis:4,moat:'Net cash + Phase 4 expansion',moatDetail:'Zero related-party fees (vs MGM 15% EBITDA leakage); net cash balance sheet; Phase 4 2027 opening provides visible growth catalyst; cleanest governance in sector — BETTER_ALTERNATIVE for governance-quality investors despite comparable valuation'},
+          {name:'WYNN MACAU (1128)',pe:'11x',revGrowth:'+6%',sq:7,dis:5,moat:'Luxury premium positioning',moatDetail:'Premium-luxury segment leader; comparable P/E to MGM China but stronger quality scores; Macquarie identifies Wynn as 2026 share gainer vs MGM; no parent royalty burden — more attractive risk-adjusted alternative to MGM despite similar multiple'}
+        ],
+        drivers: [{text:'Record 40M Macau visitors in 2025 with mass market mix improving earnings quality',type:'bull'},{text:'Satellite casino closures structurally improving MGM\'s market share trajectory',type:'bull'},{text:'Related-party fee escalation risk — any new extraction triggers immediate multiple de-rating',type:'bear'},{text:'Galaxy Phase 4 (2027) opening will pressure Cotai market share allocation',type:'bear'}]
+      }
+    },
+    '2313.HK': {
+      industryData: {
+        stats: [{label:'Revenue',value:'CNY 28.7B',sub:'+14.8% YoY'},{label:'Gross Margin',value:'~27%',sub:'Target 28%+'},{label:'ROIC',value:'18.2%',sub:'vs WACC 10%'},{label:'Net Cash',value:'CNY 12.2B',sub:'Self-funded capex'}],
+        peers: [
+          {name:'2313.HK',pe:'10x',revGrowth:'+15%',sq:7,dis:6,moat:'Vertical integration',moatDetail:'In-house yarn+dyeing+cutting+sewing; 3-5pp GM advantage vs non-integrated; 20yr+ Nike/Adidas/Uniqlo/Lululemon relationships; 45% Vietnam/Cambodia production routes around China tariffs'},
+          {name:'ECLAT (1476.TW)',pe:'18x',revGrowth:'+8%',sq:8,dis:3,moat:'Functional fabrics IP',moatDetail:'Higher gross margin (32-35%) and ROIC (~22%) vs Shenzhou; Taiwan-listed away from China/HK geopolitical discount; Lululemon primary supplier; 80% P/E premium to Shenzhou justified by mix quality and jurisdiction premium — higher quality but significantly more expensive'},
+          {name:'MAKALOT (1477.TW)',pe:'14x',revGrowth:'+6%',sq:6,dis:5,moat:'Fast fashion speed-to-market',moatDetail:'Lower gross margin (20-22%) and ROIC (~15%) vs Shenzhou; fast fashion OEM focus; moderate 14x valuation but without Shenzhou vertical integration or top-4 brand customer quality — confirms Shenzhou brand relationship premium is not fully priced in 10x P/E'},
+          {name:'PACIFIC TEXTILES',pe:'8x',revGrowth:'+3%',sq:5,dis:6,moat:'Circular knit scale',moatDetail:'Cheaper at ~8x P/E but significantly lower ROIC (~10%) and growth (3-5%); circular knit focus vs Shenzhou sportswear differentiation; at same jurisdiction but inferior quality — confirms Shenzhou 10x P/E is historically extreme discount for 18% ROIC business'}
+        ],
+        drivers: [{text:'Nike/Adidas order recovery as brand inventory normalises post-destocking cycle',type:'bull'},{text:'45% Vietnam/Cambodia capacity routes around China tariffs — structural advantage',type:'bull'},{text:'Section 301 tariff extension to Vietnam/Cambodia would collapse multi-country manufacturing strategy',type:'bear'},{text:'Labour cost inflation in Vietnam/Cambodia running 5-8% annually compressing unit margins',type:'bear'}]
+      }
+    },
+
+    GD: {
+      industryData: {
+        stats: [
+          {label:'US Defense Budget',value:'$848B + $113B',sub:'FY2026; +5% growth'},
+          {label:'GD Backlog',value:'$118B',sub:'+30% YoY; 2.2yr revenue coverage'},
+          {label:'Gulfstream',value:'158 deliveries FY25',sub:'+22 units YoY; G700/G800 ramp'},
+          {label:'NATO Rearmament',value:'2%+ GDP targets',sub:'European Land Systems $10B+ awards 2025'}
+        ],
+        peers: [
+          {name:'GD',pe:'21.5x',revGrowth:'+4.8%',sq:7,dis:4,moat:'Submarine+Gulfstream',moatDetail:'Sole-source Columbia-class sub at ~$125B program value; Gulfstream G700/G800 duopoly in large-cabin jets; $118B backlog; ROIC ~13% vs WACC ~9-10%; at 70th pct history P/E — WAIT'},
+          {name:'LMT',pe:'19x',revGrowth:'+5.2%',sq:7,dis:5,moat:'F-35 franchise',moatDetail:'Lockheed at ~12% P/E discount to GD (19x vs 21.5x) with similar PEG (~3.8x); F-35/missiles/space franchise; modestly better value vs GD at current prices; confirms sector fully valued'},
+          {name:'RTX',pe:'22x',revGrowth:'+8.1%',sq:7,dis:5,moat:'Engines+defense tech',moatDetail:'RTX at similar 22x with higher gross margins (27%) and engines/avionics moat; recent accounting concerns create slight discount vs GD clean financials; comparable quality and price'},
+          {name:'NOC',pe:'20x',revGrowth:'+4.5%',sq:7,dis:5,moat:'B-21 stealth+space',moatDetail:'Northrop at ~20x with B-21 stealth bomber and C4ISR; slower revenue growth (4.5%) but higher ROIC (~12%); comparable quality to GD at slight discount — entire A&D sector richly valued'}
+        ],
+        drivers: [
+          {text:'NATO European rearmament to 2%+ GDP: European Land Systems $10B+ in 2025; book-to-bill 2.1x; structural multi-decade demand',type:'bull'},
+          {text:'Columbia-class submarine sole-source at ~$125B program value — must-fund; margin expansion as learning curve matures at Electric Boat',type:'bull'},
+          {text:'DOGE ~$11B Pentagon efficiency cuts + continuing resolution risk; Technologies book-to-bill 0.92x signals near-term IT services softness',type:'bear'},
+          {text:'Tariff escalation on aerospace supply chains adds structural cost headwinds; Q4 Aerospace operating earnings declined $104M from G600 variances',type:'bear'}
+        ]
+      }
+    },
+    GENI: {
+      industryData: {
+        stats: [
+          {label:'Global Sports Betting',value:'$112B in 2025',sub:'11% CAGR through 2030'},
+          {label:'In-Play Betting',value:'62% of online bets',sub:'2025; rising; Genius core product'},
+          {label:'US Legal States',value:'38+ states',sub:'Missouri joined Dec 2025; expanding'},
+          {label:'Legend Acquisition',value:'$1.2B',sub:'$850M TLB; 118M unique visitors'}
+        ],
+        peers: [
+          {name:'GENI',pe:'N/A',revGrowth:'+31%',sq:6,dis:7,moat:'Exclusive data rights',moatDetail:'NFL, EPL, NCAA, Serie A exclusive rights; 650+ sportsbook customers; 5.6x EV/EBITDA vs Sportradar ~13x; Legend adds leverage and AI affiliate risk — WAIT for post-close data'},
+          {name:'SRAD',pe:'N/A',revGrowth:'+17%',sq:7,dis:4,moat:'Broadest rights+IMG Arena',moatDetail:'Sportradar at ~13x EV/EBITDA vs GENI 5.6x; broader rights portfolio post-IMG Arena; cleaner balance sheet and higher GAAP maturity; premium reflects lower execution risk but much lower return potential'},
+          {name:'DKNG',pe:'N/A',revGrowth:'+20%',sq:6,dis:5,moat:'US sportsbook scale',moatDetail:'DraftKings is major GENI customer not competitor; success drives GENI product demand; bellwether for GENI core customer health — DKNG US market share leadership directly benefits GENI data revenue'}
+        ],
+        drivers: [
+          {text:'US sports betting 38+ legal states; each new state is 2-3 years of monetization ahead as in-play betting matures from awareness to micro-betting',type:'bull'},
+          {text:'In-play betting 62% of online bets requires real-time official data — structural tailwind for Genius core tech as sportsbooks need richer faster data',type:'bull'},
+          {text:'LLMs/AI search commoditizing sports info — could disintermediate Legend affiliate traffic (118M visitors) if AI directly answers betting queries',type:'bear'},
+          {text:'Rising data rights costs as leagues renegotiate exclusive contracts; NFL deal cost $100M+; future renewals priced higher as leagues understand value',type:'bear'}
+        ]
+      }
+    },
+    ULTA: {
+      industryData: {
+        stats: [
+          {label:'US Beauty TAM',value:'~$68B',sub:'Specialty store; 4-6% CAGR'},
+          {label:'Prestige Beauty',value:'$36B',sub:'+4% in 2025 per Circana'},
+          {label:'Amazon Beauty',value:'22.7%',sub:'And growing — key competitive threat'},
+          {label:'ULTA Loyalty',value:'44M+ members',sub:'>95% of transactions; target 50M'}
+        ],
+        peers: [
+          {name:'ULTA',pe:'21.9x',revGrowth:'+9.7%',sq:7,dis:5,moat:'Mass-to-prestige loyalty',moatDetail:'44M+ active members >95% of transactions; only retailer spanning mass-to-prestige plus salon; 22.7% ROIC vs WACC ~9%; 1,505 stores all 50 states; BUY at 22x on post-earnings selloff'},
+          {name:'ELF',pe:'35x',revGrowth:'+28%',sq:6,dis:4,moat:'Value viral brand',moatDetail:'Higher growth and ROIC (~30%) but niche mass-market brand unproven at scale vs ULTA full-range; 35x vs ULTA 22x — ULTA better value for broader moat and defensive end-market exposure'},
+          {name:'Sephora (LVMH)',pe:'N/A',revGrowth:'+8%',sq:8,dis:'N/A',moat:'Prestige-first curation',moatDetail:'Primary specialty rival at ~$9B US revenue; Kohl expansion to 900+ stores is the key competitive threat — validates specialty beauty as growing category even as it intensifies ULTA competition'}
+        ],
+        drivers: [
+          {text:'Prestige +4% and mass +5% beauty driven by Gen Z/Alpha engagement starting younger, wellness-beauty convergence, social media discovery — category resilience exceptional',type:'bull'},
+          {text:'Premiumization and social media brand discovery create perpetual new brand pipeline seeking ULTA distribution — curation authority compounds with 44M+ member data',type:'bull'},
+          {text:'Amazon 22.7% US beauty market; TikTok Shop projected +3% share over 7 years — convenience/discovery model threatens ULTA trip-driving value proposition',type:'bear'},
+          {text:'Sephora-at-Kohl full 900+ stores + MoCRA compliance costs + tariffs on 10-15% of assortment create dual cost and competitive headwind',type:'bear'}
+        ]
+      }
+    },
+    VEEV: {
+      industryData: {
+        stats: [
+          {label:'Life Sciences SaaS TAM',value:'$20-25B today',sub:'>$30-50B by 2028; 12-15% CAGR'},
+          {label:'VEEV CRM Share',value:'~80%',sub:'Salesforce Life Sciences only rival'},
+          {label:'Vault CRM Live',value:'125+ deployments',sub:'14 of top 20 pharma committed'},
+          {label:'Net Cash',value:'$6.5B',sub:'EV $23.3B vs $29.7B mkt cap; $2B buyback'}
+        ],
+        peers: [
+          {name:'VEEV',pe:'20.5x',revGrowth:'+16.3%',sq:8,dis:7,moat:'Regulatory validation moat',moatDetail:'FDA 21 CFR Part 11 with 15+ yr validation; 80% CRM share; $6.5B net cash; 153% FCF/NI; PEG 0.79x at 5th percentile historical P/E — generational mispricing from Salesforce competitive fear'},
+          {name:'CRM',pe:'25x',revGrowth:'+8%',sq:7,dis:5,moat:'Horizontal platform breadth',moatDetail:'Salesforce at similar 25x but 8% organic growth vs VEEV 16%; Life Sciences Cloud is primary CRM competitive threat; horizontal platform is advantage in general enterprise but disadvantage in FDA-validated workflows — confirms VEEV regulatory moat is real'},
+          {name:'IQV',pe:'16x',revGrowth:'+4%',sq:6,dis:6,moat:'Data+CRO integration',moatDetail:'IQVIA cheaper at 16x but 35% gross margins vs VEEV 75%+; higher leverage; 4% growth — fundamentally different lower-quality risk profile; data+CRO model complementary not substitutive in life sciences IT stack'}
+        ],
+        drivers: [
+          {text:'FDA 21 CFR Part 11 compliance creates irreversible mandate for validated platforms; AI in regulated industries requires auditable outputs — Veeva IS the validated platform',type:'bull'},
+          {text:'AI agents (CRM/PromoMats Dec 2025; clinical/safety/quality planned 2026) create new pricing layer compounding on existing contracted revenue without new implementation cycles',type:'bull'},
+          {text:'Salesforce Life Sciences Cloud 40+ customers including Takeda and Pfizer; 6 of top 20 pharma potentially defecting — CRM churn real though contained at ~5% total revenue',type:'bear'},
+          {text:'IRA drug pricing + 15% pharma tariffs reduce R&D budgets; pharma IT spend reduction could slow renewal timing and compress NRR below 115%',type:'bear'}
+        ]
+      }
+    }
+  };
+
+  // Apply enrichment without touching original string fields
+  Object.keys(enrichment).forEach(function(ticker) {
+    if (STOCKS[ticker]) {
+      var e = enrichment[ticker];
+      if (e.sqExplain) STOCKS[ticker].sqExplain = e.sqExplain;
+      if (e.dislocationExplain) STOCKS[ticker].dislocationExplain = e.dislocationExplain;
+      if (e.industryData) STOCKS[ticker].industryData = e.industryData;
+    }
+  });
+
+  // For stocks without specific enrichment, generate defaults from existing data
+  Object.keys(STOCKS).forEach(function(ticker) {
+    var s = STOCKS[ticker];
+    if (!s.sqExplain) {
+      s.sqExplain = [
+        { factor: 'ROIC vs WACC', detail: (s.roic ? s.roic + '% vs ' + s.wacc + '%' : 'See report for details'), sentiment: s.roic > s.wacc ? 'positive' : s.roic === s.wacc ? 'neutral' : 'negative' },
+        { factor: 'Growth Profile', detail: 'Revenue and earnings growth trajectory', sentiment: 'positive' },
+        { factor: 'Competitive Position', detail: s.sector + ' — see moat assessment', sentiment: s.sqScore >= 7 ? 'positive' : 'neutral' },
+        { factor: 'Balance Sheet', detail: 'Capital structure and cash flow quality', sentiment: 'neutral' }
+      ];
+    }
+    if (!s.dislocationExplain) {
+      var upside = s.targetPrice > 0 ? Math.round((s.targetPrice - s.livePrice) / s.livePrice * 100) : 0;
+      s.dislocationExplain = [
+        { factor: 'Valuation', detail: (s.reportPE ? s.reportPE + 'x fwd P/E' : 'See report'), sentiment: s.dislocationScore >= 7 ? 'positive' : 'neutral' },
+        { factor: 'Sentiment', detail: 'Market positioning vs fundamentals', sentiment: s.dislocationScore >= 7 ? 'positive' : 'neutral' },
+        { factor: 'Upside to PWT', detail: '+' + upside + '% to probability-weighted target', sentiment: upside > 25 ? 'positive' : upside > 10 ? 'neutral' : 'negative' },
+        { factor: 'Catalyst Timeline', detail: 'Proximity of events that could close the gap', sentiment: 'neutral' }
+      ];
+    }
+    if (!s.industryData) {
+      s.industryData = {
+        stats: [{label:'Sector',value:s.sector.split('/')[0].trim(),sub:''},{label:'SQ Score',value:s.sqScore+'/10',sub:s.sqScore>=8?'Strong':'Moderate'},{label:'Dislocation',value:s.dislocationAtReport+'/10',sub:s.dislocationAtReport>=7?'Attractive':'Limited'},{label:'Rating',value:s.rating,sub:'Current'}],
+        peers: [],
+        drivers: []
+      };
+    }
+  });
+
+  // Generate reportContext for stocks that don't have one
+  Object.keys(STOCKS).forEach(function(ticker) {
+    var s = STOCKS[ticker];
+    if (s.reportContext) return; // Already has context (e.g. SE)
+    
+    var bullets = (s.thesisBullets || []).map(function(b) { return b.replace(/<[^>]+>/g, ''); }).join(' ');
+    var coreBullet = bullets.substring(0, 300);
+    var scenarios = 'BULL(' + s.bullProb + '%) $' + s.bullCase + ' | BASE(' + s.baseProb + '%) $' + s.baseCase + ' | BEAR(' + s.bearProb + '%) $' + s.bearCase;
+    var fins = (s.financials || []).map(function(f) { return f.label + ': ' + f.value + ' ' + f.trend; }).join(' | ');
+    var cats = (s.catalysts || []).slice(0, 4).map(function(c) { return c.name + ' (' + c.date + ')'; }).join(' | ');
+    var moats = (s.moatItems || []).map(function(m) { return m.label; }).join(', ');
+    var debates = (s.debates || []).map(function(d,i) { return 'D' + (i+1) + ': ' + d.question; }).join(' | ');
+    var upside = s.targetPrice > 0 ? Math.round((s.targetPrice - s.livePrice) / s.livePrice * 100) : 0;
+    
+    s.reportContext = 
+      'THESIS: ' + coreBullet + '\n' +
+      'THESIS_HINGE: ' + (s.thesisHinge || 'See report') + '\n' +
+      'SCENARIOS: ' + scenarios + '\n' +
+      'SQ: ' + s.sqScore + '/10 | DISLOCATION: ' + s.dislocationAtReport + '/10\n' +
+      'FINANCIALS: ' + fins + '\n' +
+      'CATALYSTS: ' + cats + '\n' +
+      'MOAT: ' + moats + '\n' +
+      'DEBATES: ' + debates + '\n' +
+      'KEY_NUMBERS: Entry $' + s.entryPrice + ' | Report $' + s.reportPrice + ' | PWT $' + s.targetPrice + ' (' + (upside > 0 ? '+' : '') + upside + '%) | Bear $' + s.bearCase + ' | Bull $' + s.bullCase +
+      (s.betterAlt ? '\nBETTER_ALT: ' + s.betterAlt.replace(/<[^>]+>/g, '').substring(0, 150) : '');
+  });
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+// prices pulled from Google Sheet on demand
+
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-SG', { day:'numeric', month:'short', year:'numeric' }).toUpperCase();
+
+// State seeded from stocks-data.js
+renderTable();
+applyPriorityFilter();
+// Load persisted state after table renders
+persistLoad();
+
+function printCard() {
+  window.print();
+}
+
+
+/* ═══════════════════════════════════════════════════
+   READER-FRIENDLY UI: search, rating chips, sector grouping, conviction strip
+═══════════════════════════════════════════════════ */
+let _ratingFilter = 'all';
+let _sectorGrouped = false;
+
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const next = cur === 'light' ? 'dark' : 'light';
+  if (next === 'light') {
+    root.setAttribute('data-theme', 'light');
+  } else {
+    root.removeAttribute('data-theme');
+  }
+  try { localStorage.setItem('wl_theme', next); } catch(e){}
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.innerHTML = next === 'light' ? '☀ LIGHT' : '☾ DARK';
+}
+
+// Apply persisted theme on load
+(function initTheme() {
+  try {
+    const saved = localStorage.getItem('wl_theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.innerHTML = '☀ LIGHT';
+    }
+  } catch(e){}
+})();
+
+function applySearchFilter() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  const tbody = document.getElementById('watchlistBody');
+  if (!tbody) return;
+  let visible = 0;
+  let total = 0;
+  Array.from(tbody.querySelectorAll('tr[data-ticker]')).forEach(tr => {
+    total++;
+    const ticker = (tr.getAttribute('data-ticker') || '').toLowerCase();
+    const name = (tr.querySelector('td:nth-child(2)')?.textContent || '').toLowerCase();
+    const rating = (tr.querySelector('.rating-pill, .rating-cell, td:nth-child(3)')?.textContent || '').toUpperCase().trim();
+    let show = true;
+    if (q && !ticker.includes(q) && !name.includes(q)) show = false;
+    if (_ratingFilter !== 'all' && !rating.includes(_ratingFilter)) show = false;
+    tr.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const fc = document.getElementById('filterCount');
+  if (fc) fc.textContent = visible === total ? (total + ' positions') : (visible + ' of ' + total + ' shown');
+}
+
+function setRatingChip(rating) {
+  _ratingFilter = rating;
+  document.querySelectorAll('.rating-chip').forEach(c => {
+    if (c.getAttribute('data-rating') === rating) {
+      c.style.outline = '2px solid var(--cyan)';
+      c.style.outlineOffset = '0px';
+    } else {
+      c.style.outline = 'none';
+    }
+  });
+  applySearchFilter();
+}
+
+function scrollToBuys() {
+  // Scroll to first BUY row
+  const tbody = document.getElementById('watchlistBody');
+  if (!tbody) return;
+  const firstBuy = Array.from(tbody.querySelectorAll('tr[data-ticker]')).find(tr => {
+    const txt = tr.textContent.toUpperCase();
+    return txt.includes('BUY') && tr.style.display !== 'none';
+  });
+  if (firstBuy) firstBuy.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Map fine-grained sector strings -> broad buckets
+function _broadSector(rawSector) {
+  if (!rawSector) return 'Other';
+  const s = rawSector.toLowerCase();
+  // SaaS / Software (broad bucket for all software/cloud/data)
+  if (/saas|software|cloud|database|observability|workflow|govtech|enterprise|sportstech|sports data|life sciences saas/.test(s)) return 'Software / SaaS';
+  // AI Infrastructure & Semis
+  if (/\bai\b|semiconductor|silicon|accelerated|gpu|neocloud|networking|data center/.test(s)) return 'AI Infra / Semis';
+  // Cybersecurity
+  if (/cyber|security|zero trust|sase|endpoint/.test(s)) return 'Cybersecurity';
+  // Internet / Platforms / Media (consumer-facing)
+  if (/internet|superapp|short-video|streaming|digital media|social media|advertising|ad tech|gaming|ota|online travel|local commerce/.test(s)) return 'Internet / Media';
+  // Banks / IB / Exchanges / Fintech
+  if (/bank|exchange|fintech|payment|financial techn|debt purchas|smb software/.test(s)) return 'Banks / IB / Fintech';
+  // Insurance
+  if (/insurance|p&c|life & health/.test(s)) return 'Insurance';
+  // Alternatives (asset managers)
+  if (/alternative asset|asset management/.test(s)) return 'Alternatives';
+  // Diversified Holding (Berkshire-type)
+  if (/diversified holding/.test(s)) return 'Diversified Holdings';
+  // Aerospace & Defense
+  if (/aerospace|defense|defence/.test(s)) return 'Aerospace / Defense';
+  // Energy / Utilities / Power
+  if (/energy|e&p|nuclear|power|utility|utilities/.test(s)) return 'Energy / Power';
+  // Industrials (broad)
+  if (/industrial|ems|tech manufactur|component|electronics|rfid|iot/.test(s)) return 'Industrials';
+  // Travel / Lodging / Leisure
+  if (/cruise|airline|leisure|travel|lodging|hospitality|hotel|gaming.*hospitality|macau/.test(s)) return 'Travel / Leisure';
+  // Healthcare / Life Sciences hardware (Danaher etc.)
+  if (/diagnost|life science|biotech|pharma|medical/.test(s)) return 'Healthcare / Life Sci';
+  // Consumer (combines staples, discretionary, restaurants — collapsed per request)
+  if (/sportswear|apparel|knitwear|beauty|appliance|consumer electronics.*ev|ev \/|nev|automotive/.test(s)) return 'Consumer / Retail';
+  if (/staple|packaged food|grocer|retail/.test(s)) return 'Consumer / Retail';
+  if (/restaurant|fast casual|fast-casual/.test(s)) return 'Consumer / Retail';
+  // Logistics
+  if (/freight|brokerage|3pl|logistics/.test(s)) return 'Logistics';
+  // IT Solutions / Distribution
+  if (/it solutions|distribution/.test(s)) return 'IT Distribution';
+  // Fallback: anything unclassified routes to Consumer / Retail (collapsed bucket)
+  return 'Consumer / Retail';
+}
+
+// Map exchange/currency/ticker -> country bucket
+function _country(stock) {
+  if (!stock) return 'Other';
+  const ex = (stock.exchange || '').toUpperCase();
+  const ccy = (stock.currency || '').toUpperCase();
+  const t = (stock.ticker || '').toUpperCase();
+  if (ex === 'HKEX' || ccy === 'HKD' || /\.HK$/.test(t)) return 'Hong Kong / China';
+  if (ex === 'NYSE' || ex === 'NASDAQ' || ex === 'NASDAQ-GS' || ccy === 'USD') return 'United States';
+  if (ex === 'LSE' || ccy === 'GBP') return 'United Kingdom';
+  if (ex === 'TSE' || ccy === 'JPY') return 'Japan';
+  if (ex === 'SGX' || ccy === 'SGD') return 'Singapore';
+  if (ex === 'KRX' || ccy === 'KRW') return 'Korea';
+  if (ex === 'ASX' || ccy === 'AUD') return 'Australia';
+  if (ex === 'EURONEXT' || ccy === 'EUR') return 'Europe';
+  return 'Other';
+}
+
+function toggleSectorGroup() {
+  _sectorGrouped = !_sectorGrouped;
+  const btn = document.getElementById('groupBtn');
+  const tbody = document.getElementById('watchlistBody');
+  if (!tbody) return;
+
+  // Remove existing header rows (both old single-level and new two-level)
+  Array.from(tbody.querySelectorAll('tr.sector-header, tr.country-header, tr.subsector-header')).forEach(tr => tr.remove());
+
+  if (!_sectorGrouped) {
+    if (btn) {
+      btn.style.borderColor = 'var(--border2)';
+      btn.style.color = 'var(--text2)';
+      btn.textContent = 'GROUP BY COUNTRY / SECTOR';
+    }
+    return;
+  }
+  if (btn) {
+    btn.style.borderColor = 'var(--cyan)';
+    btn.style.color = 'var(--cyan)';
+    btn.textContent = '✓ GROUPED';
+  }
+
+  // Build hierarchy: country -> broad sector -> rows
+  const rows = Array.from(tbody.querySelectorAll('tr[data-ticker]'));
+  const tree = {};
+  rows.forEach(tr => {
+    const t = tr.getAttribute('data-ticker');
+    const stock = STOCKS[t];
+    if (!stock) return;
+    const country = _country(stock);
+    const sector = _broadSector(stock.sector);
+    if (!tree[country]) tree[country] = {};
+    if (!tree[country][sector]) tree[country][sector] = [];
+    tree[country][sector].push(tr);
+  });
+
+  const colCount = (document.querySelector('#watchlistTable thead tr:last-child') || {}).children?.length || 14;
+
+  // Country priority order: US, HK/CN, UK, EU, others alpha
+  const countryOrder = { 'United States': 1, 'Hong Kong / China': 2, 'United Kingdom': 3, 'Europe': 4, 'Singapore': 5, 'Japan': 6, 'Korea': 7, 'Australia': 8, 'Other': 99 };
+  const countryList = Object.keys(tree).sort((a, b) => {
+    const oa = countryOrder[a] || 50, ob = countryOrder[b] || 50;
+    if (oa !== ob) return oa - ob;
+    return a.localeCompare(b);
+  });
+
+  countryList.forEach(country => {
+    const sectorMap = tree[country];
+    // Country-level metrics
+    let cTotalUp = 0, cN = 0, cBuys = 0, cCount = 0;
+    Object.values(sectorMap).forEach(grp => {
+      grp.forEach(tr => {
+        cCount++;
+        const s = STOCKS[tr.getAttribute('data-ticker')];
+        if (!s) return;
+        if (s.targetPrice && s.livePrice) { cTotalUp += (s.targetPrice - s.livePrice) / s.livePrice * 100; cN++; }
+        if (s.rating === 'BUY') cBuys++;
+      });
+    });
+    const cAvgUp = cN ? (cTotalUp / cN).toFixed(1) : '—';
+
+    // Country header (level 1 — large, prominent)
+    const cHeader = document.createElement('tr');
+    cHeader.className = 'country-header';
+    cHeader.innerHTML = '<td colspan="' + colCount + '" style="padding:18px 12px 10px;background:linear-gradient(90deg, var(--s2) 0%, var(--surface) 100%);border-top:3px solid var(--cyan);"><span style="font-family:\'Instrument Serif\',serif;font-size:18px;font-style:italic;color:var(--text);letter-spacing:.01em;">' + country + '</span> <span style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;margin-left:14px;">' + cCount + ' positions · ' + cBuys + ' buys · avg upside ' + cAvgUp + '%</span></td>';
+    tbody.appendChild(cHeader);
+
+    // Sort sectors within country by count desc, then alpha
+    const sectorList = Object.keys(sectorMap).sort((a, b) => {
+      const ca = sectorMap[a].length, cb = sectorMap[b].length;
+      if (cb !== ca) return cb - ca;
+      return a.localeCompare(b);
+    });
+
+    sectorList.forEach(sec => {
+      const grp = sectorMap[sec];
+      let totalUp = 0, n = 0, buys = 0;
+      grp.forEach(tr => {
+        const s = STOCKS[tr.getAttribute('data-ticker')];
+        if (!s) return;
+        if (s.targetPrice && s.livePrice) { totalUp += (s.targetPrice - s.livePrice) / s.livePrice * 100; n++; }
+        if (s.rating === 'BUY') buys++;
+      });
+      const avgUp = n ? (totalUp / n).toFixed(1) : '—';
+
+      // Subsector header (level 2 — smaller, indented feel)
+      const sHeader = document.createElement('tr');
+      sHeader.className = 'subsector-header';
+      sHeader.innerHTML = '<td colspan="' + colCount + '" style="padding:8px 12px 6px 24px;background:var(--surface);border-top:1px solid var(--border);"><span style="font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.02em;">' + sec + '</span> <span style="font-size:9px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-left:10px;">' + grp.length + (grp.length === 1 ? ' position' : ' positions') + ' · ' + buys + ' buy' + (buys === 1 ? '' : 's') + ' · ' + avgUp + '%</span></td>';
+      tbody.appendChild(sHeader);
+
+      grp.forEach(tr => tbody.appendChild(tr));
+    });
+  });
+}
+
+function renderConvictionStrip() {
+  const cont = document.getElementById('convictionCards');
+  if (!cont) return;
+  // Get all BUY-rated stocks, score them by SQ * upside%
+  const buys = Object.values(STOCKS)
+    .filter(s => s.rating === 'BUY' && s.targetPrice > 0 && s.livePrice > 0)
+    .map(s => {
+      const up = (s.targetPrice - s.livePrice) / s.livePrice * 100;
+      return { s: s, upside: up, score: (s.sqScore || 0) * up };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
+
+  // Generate shortform from full company name
+  function shortName(full, ticker) {
+    if (!full) return ticker || '';
+    let n = full;
+    // Strip common corporate suffixes
+    n = n.replace(/,?\s+(Inc\.?|Incorporated|Corp\.?|Corporation|Co\.?|Company|Ltd\.?|Limited|plc|PLC|S\.A\.|SA|AG|N\.V\.|NV|Holdings?|Group|& plc|& Co\.?|International)\b\.?/gi, '');
+    n = n.replace(/,?\s+(Inc\.?|Corp\.?|Ltd\.?|Limited|Holdings?|Group|Companies)\b\.?/gi, '');
+    n = n.replace(/\s{2,}/g, ' ').replace(/[,\s]+$/, '').trim();
+    // Cap at 18 chars
+    if (n.length > 18) n = n.slice(0, 17).replace(/\s+\S*$/, '') + '…';
+    return n || ticker || '';
+  }
+  cont.innerHTML = buys.map(b => {
+    const s = b.s;
+    const upside = b.upside.toFixed(0);
+    const ccy = s.currency === 'HKD' ? 'HK$' : '$';
+    const display = shortName(s.name, s.ticker);
+    return '<div onclick="if(typeof openCard===\'function\')openCard(\'' + s.ticker + '\')" title="' + (s.ticker || '') + ' — ' + (s.name || '') + '" style="flex:0 0 auto;min-width:170px;background:var(--s3);border:1px solid var(--green-bd);border-radius:6px;padding:10px 12px;cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'var(--green-bd)\'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><div style="font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;color:var(--text);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + display + '</div><div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--green);font-weight:600;">+' + upside + '%</div></div>' +
+      '<div style="font-size:9px;color:var(--text3);margin-top:2px;font-family:\'DM Mono\',monospace;letter-spacing:.05em;">' + (s.ticker || '') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:6px;font-family:\'DM Mono\',monospace;font-size:9px;color:var(--text2);"><span>SQ ' + (s.sqScore || '—') + '</span><span>Dis ' + (s.dislocationAtReport || s.dislocationScore || '—') + '</span><span>' + ccy + (s.livePrice || 0).toLocaleString() + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+// Render conviction strip after table is built; also after price refresh
+(function bootReaderUI() {
+  // Wait for STOCKS + table to be ready
+  function tryRender() {
+    if (typeof STOCKS !== 'undefined' && document.getElementById('convictionCards')) {
+      renderConvictionStrip();
+      // Hook into existing renderTable / applyPriceString so the strip refreshes
+      if (typeof window.renderTable === 'function') {
+        const _o = window.renderTable;
+        window.renderTable = function() { _o.apply(this, arguments); try { renderConvictionStrip(); } catch(e){} };
+      }
+      if (typeof window.applyPriceString === 'function') {
+        const _p = window.applyPriceString;
+        window.applyPriceString = function() { _p.apply(this, arguments); try { renderConvictionStrip(); } catch(e){} };
+      }
+      // Initial filter count
+      applySearchFilter();
+      return true;
+    }
+    return false;
+  }
+  if (!tryRender()) {
+    setTimeout(tryRender, 100);
+    setTimeout(tryRender, 500);
+    setTimeout(tryRender, 1500);
+  }
+})();
+
+</script>
+</body>
+</html>
