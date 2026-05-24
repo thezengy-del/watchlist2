@@ -115,6 +115,44 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .stat-val  { font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--text); }
 .stat-lbl  { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-top:1px; }
 
+/* ── PRIORITY FILTER CHIPS ── */
+.pf-chip { opacity: 0.55; }
+.pf-chip.pf-active { opacity: 1; box-shadow: 0 0 0 1px currentColor; }
+
+/* ── COUNTRY TABS ── */
+.country-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  margin-bottom: -1px;
+}
+.country-tab:hover { color: var(--text2); }
+.country-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.country-tab .tab-count {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 9px;
+  background: var(--s3);
+  color: var(--text3);
+  font-weight: 700;
+}
+.country-tab.active .tab-count { background: rgba(103,232,249,.12); color: var(--cyan); }
+
 /* ── WATCHLIST PRIORITY BADGE ── */
 .priority-select-wrap { display:flex; align-items:center; gap:8px; }
 .priority-select-wrap label { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
@@ -1031,16 +1069,17 @@ th.sortable:hover { color:var(--text2); background:var(--s2); }
     <div class="stat-item"><div class="stat-val" id="statBuys">—</div><div class="stat-lbl">Active Buys</div></div>
     <div class="stat-item"><div class="stat-val" id="statAvgUpside">—</div><div class="stat-lbl">Avg Upside</div></div>
     <div class="stat-item">
-      <div class="priority-select-wrap">
-        <label>Priority Filter</label>
-        <select class="priority-select" id="priorityFilter" onchange="applyPriorityFilter()">
-          <option value="all">All Stocks</option>
-          <option value="bought">Bought</option>
-          <option value="watchlist">Watchlist</option>
-          <option value="backburner">Backburner</option>
-        </select>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:'DM Mono',monospace;">Checklist</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <button id="pf-all" onclick="setPriorityFilter('all')" class="pf-chip pf-active" style="font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;letter-spacing:.05em;transition:all .15s;">ALL</button>
+          <button id="pf-bought" onclick="setPriorityFilter('bought')" class="pf-chip" style="font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid rgba(52,211,153,.3);background:var(--s3);color:var(--green);cursor:pointer;letter-spacing:.05em;transition:all .15s;">● BOUGHT</button>
+          <button id="pf-watchlist" onclick="setPriorityFilter('watchlist')" class="pf-chip" style="font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid rgba(103,232,249,.3);background:var(--s3);color:var(--cyan);cursor:pointer;letter-spacing:.05em;transition:all .15s;">● WATCHLIST</button>
+          <button id="pf-backburner" onclick="setPriorityFilter('backburner')" class="pf-chip" style="font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid rgba(251,191,36,.3);background:var(--s3);color:var(--amber);cursor:pointer;letter-spacing:.05em;transition:all .15s;">● BACKBURNER</button>
+        </div>
+        <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace" id="priorityCount"></div>
       </div>
-      <div style="font-size:9px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace" id="priorityCount"></div>
+      <input type="hidden" id="priorityFilter" value="all">
     </div>
     <div class="stat-item">
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
@@ -1057,19 +1096,22 @@ th.sortable:hover { color:var(--text2); background:var(--s2); }
   </div>
 </div>
 
+<!-- Country tab bar -->
+<div id="countryTabBar" style="padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;gap:0;align-items:flex-end;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+</div>
+
 <!-- Reader-friendly utility bar -->
-<div class="utility-bar" style="padding:10px 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-  <input type="text" id="searchInput" placeholder="Search ticker or name..." oninput="applySearchFilter()" style="flex:1;min-width:200px;max-width:320px;padding:7px 12px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;transition:border .15s;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border2)'">
-  <div id="ratingChips" style="display:flex;gap:6px;flex-wrap:wrap;">
-    <span class="rating-chip active" data-rating="all" onclick="setRatingChip('all')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;letter-spacing:.05em;">ALL</span>
-    <span class="rating-chip" data-rating="BUY" onclick="setRatingChip('BUY')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--green-bd);background:var(--s3);color:var(--green);cursor:pointer;letter-spacing:.05em;">BUY</span>
-    <span class="rating-chip" data-rating="WAIT" onclick="setRatingChip('WAIT')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--wait-bd);background:var(--s3);color:var(--purple);cursor:pointer;letter-spacing:.05em;">WAIT</span>
-    <span class="rating-chip" data-rating="AVOID" onclick="setRatingChip('AVOID')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--red-bd);background:var(--s3);color:var(--red);cursor:pointer;letter-spacing:.05em;">AVOID</span>
+<div class="utility-bar" style="padding:8px 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+  <input type="text" id="searchInput" placeholder="Search ticker or name..." oninput="applySearchFilter()" style="flex:1;min-width:180px;max-width:280px;padding:6px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;transition:border .15s;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border2)'">
+  <div id="ratingChips" style="display:flex;gap:5px;flex-wrap:wrap;">
+    <span class="rating-chip active" data-rating="all" onclick="setRatingChip('all')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;letter-spacing:.05em;">ALL</span>
+    <span class="rating-chip" data-rating="BUY" onclick="setRatingChip('BUY')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--green-bd);background:var(--s3);color:var(--green);cursor:pointer;letter-spacing:.05em;">BUY</span>
+    <span class="rating-chip" data-rating="WAIT" onclick="setRatingChip('WAIT')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--wait-bd);background:var(--s3);color:var(--purple);cursor:pointer;letter-spacing:.05em;">WAIT</span>
+    <span class="rating-chip" data-rating="AVOID" onclick="setRatingChip('AVOID')" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--red-bd);background:var(--s3);color:var(--red);cursor:pointer;letter-spacing:.05em;">AVOID</span>
   </div>
   <div style="display:flex;gap:6px;">
-    <button id="groupBtn" onclick="toggleSectorGroup()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text2);cursor:pointer;letter-spacing:.05em;">GROUP BY COUNTRY / SECTOR</button>
-    <button id="themeToggleBtn" onclick="toggleTheme()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text2);cursor:pointer;letter-spacing:.05em;" title="Toggle light/dark mode">☾ DARK</button>
-    <button onclick="scrollToBuys()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:5px 10px;border-radius:4px;border:1px solid var(--cyan);background:var(--s3);color:var(--cyan);cursor:pointer;letter-spacing:.05em;">↑ TOP BUYS</button>
+    <button id="themeToggleBtn" onclick="toggleTheme()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);color:var(--text2);cursor:pointer;letter-spacing:.05em;" title="Toggle light/dark mode">☾ DARK</button>
+    <button onclick="scrollToBuys()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:4px;border:1px solid var(--cyan);background:var(--s3);color:var(--cyan);cursor:pointer;letter-spacing:.05em;">↑ TOP BUYS</button>
   </div>
   <div id="filterCount" style="margin-left:auto;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
 </div>
@@ -2159,7 +2201,8 @@ document.getElementById('todayDate').textContent = new Date().toLocaleDateString
 
 // State seeded from stocks-data.js
 renderTable();
-applyPriorityFilter();
+buildCountryTabs();
+applyAllFilters();
 // Load persisted state after table renders
 persistLoad();
 
@@ -2201,7 +2244,9 @@ function toggleTheme() {
   } catch(e){}
 })();
 
-function applySearchFilter() {
+function applySearchFilter() { applyAllFilters(); }
+
+function _applySearchFilter_orig() {
   const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
   const tbody = document.getElementById('watchlistBody');
   if (!tbody) return;
@@ -2223,6 +2268,13 @@ function applySearchFilter() {
 }
 
 function setRatingChip(rating) {
+  document.querySelectorAll('.rating-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.querySelector('.rating-chip[data-rating="' + rating + '"]');
+  if (chip) chip.classList.add('active');
+  applyAllFilters();
+}
+
+function _setRatingChip_orig(rating) {
   _ratingFilter = rating;
   document.querySelectorAll('.rating-chip').forEach(c => {
     if (c.getAttribute('data-rating') === rating) {
