@@ -9607,7 +9607,7 @@ async function callClaude(prompt, useSearch = false) {
     "netSentiment": "MILDLY_BULLISH"
   }
 };
-  const PERSIST_FIELDS_SEED = ['livePrice','livePxChange','week52High','week52Low','liveMarketCap','dislocationScore','netSentiment','_cachedAdviceHTML','_cachedAssessmentTime','_cachedLastRefreshed','_cachedThesisBanner','_lastRefreshPrice','_cachedDebateUpdates','priority'];
+  const PERSIST_FIELDS_SEED = ['livePrice','livePxChange','week52High','week52Low','liveMarketCap','dislocationScore','netSentiment','_cachedAdviceHTML','_cachedAssessmentTime','_cachedLastRefreshed','_cachedThesisBanner','_lastRefreshPrice','_cachedDebateUpdates','_cachedInstruction','_cachedTrigger','priority'];
   let seeded = 0;
   for (const [ticker, saved] of Object.entries(EMBEDDED)) {
     if (!STOCKS[ticker]) continue;
