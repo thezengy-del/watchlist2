@@ -1,4 +1,4 @@
-// stocks-data.js — Watchlist stock definitions + cached state
+// stocks-data.js
 // Last generated: May 2026
 
 const STOCKS = {
@@ -6601,7 +6601,9 @@ function setTickerPriority(ticker, val) {
   savePriorities(map);
 }
 
-function applyPriorityFilter() {
+function applyPriorityFilter() { applyAllFilters(); }
+
+function _applyPriorityFilter_orig() {
   const filter = document.getElementById('priorityFilter').value;
   const rows = document.querySelectorAll('#watchlistBody tr');
   let visible = 0;
@@ -6732,9 +6734,9 @@ function renderTable() {
       '<td id="tbl-pxchg-'  + s.ticker + '">' + buildPxChg(s) + '</td>' +
       '<td id="tbl-w52-'    + s.ticker + '">' + buildW52Bar(s) + '</td>' +
       '<td><span class="price-mono" style="color:var(--text3)">$' + fmtPrice(s.reportPrice) + '</span></td>' +
-      '<td id="tbl-rdiff-'  + s.ticker + '"><span class="ref-mono">' + (reportDiff >= 0 ? '+' : '') + reportDiff.toFixed(1) + '%</span></td>' +
+      '<td id="tbl-rdiff-'  + s.ticker + '">' + buildDeltaPct(reportDiff, 25) + '</td>' +
       '<td><span class="ref-mono">$' + fmtPrice(s.targetPrice) + '</span></td>' +
-      '<td id="tbl-upside-' + s.ticker + '"><span class="ref-mono">' + (upside >= 0 ? '+' : '') + upside.toFixed(1) + '%</span></td>' +
+      '<td id="tbl-upside-' + s.ticker + '">' + buildDeltaPct(upside, 50) + '</td>' +
       '<td><span class="price-mono" style="color:var(--cyan)">$' + fmtPrice(s.entryPrice) + '</span></td>' +
       '<td id="tbl-entryflag-' + s.ticker + '">' + entryFlagHtml + '</td>' +
       '<td><span class="sector-chip">' + s.sector + '</span></td>' +
@@ -6746,12 +6748,188 @@ function renderTable() {
   document.getElementById('statAvgUpside').textContent = (totalUpside / stocks.length).toFixed(1) + '%';
 }
 
+// Gradient colour: red at -10%+, amber at -3%, neutral at 0, lime at +5%, green at +15%+
+function gradientPctColor(v, maxMag) {
+  if (v === null || v === undefined || isNaN(v)) return 'var(--text3)';
+  const mag = maxMag || 15;
+  const clamped = Math.max(-mag, Math.min(mag, v));
+  if (v === 0) return 'var(--text3)';
+  if (v > 0) {
+    // 0 → +mag: text3 → lime → green
+    const t = Math.min(clamped / mag, 1);
+    const r = Math.round(53  + (52  - 53)  * t);
+    const g = Math.round(162 + (211 - 162) * t);
+    const b = Math.round(55  + (153 - 55)  * t);
+    return `rgb(${r},${g},${b})`;
+  } else {
+    // 0 → -mag: text3 → amber → red
+    const t = Math.min(-clamped / mag, 1);
+    if (t < 0.4) {
+      // amber zone
+      const u = t / 0.4;
+      const r = Math.round(200 + (251 - 200) * u);
+      const g = Math.round(180 + (191 - 180) * u);
+      const b = Math.round(60  + (36  - 60)  * u);
+      return `rgb(${r},${g},${b})`;
+    } else {
+      // red zone
+      const u = (t - 0.4) / 0.6;
+      const r = Math.round(251 + (248 - 251) * u);
+      const g = Math.round(191 + (113 - 191) * u);
+      const b = Math.round(36  + (113 - 36)  * u);
+      return `rgb(${r},${g},${b})`;
+    }
+  }
+}
+
 function buildPxChg(s) {
   if (s.livePxChange == null) return '<span class="px-chg-nil">—</span>';
   const v = s.livePxChange;
-  const cls = v > 0 ? 'px-chg-pos' : v < 0 ? 'px-chg-neg' : 'px-chg-nil';
-  return '<span class="' + cls + '">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
+  const col = gradientPctColor(v, 5);
+  return '<span style="color:' + col + ';font-family:\'DM Mono\',monospace;font-size:12px;font-weight:600">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
 }
+
+function buildDeltaPct(v, maxMag) {
+  if (v === null || v === undefined || isNaN(v)) return '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:12px">—</span>';
+  const col = gradientPctColor(v, maxMag || 20);
+  return '<span style="color:' + col + ';font-family:\'DM Mono\',monospace;font-size:12px;font-weight:600">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
+}
+
+
+/* ═══════════════════════════════════════════════════
+   COUNTRY TABS
+═══════════════════════════════════════════════════ */
+var _activeCountryTab = 'All';
+
+function buildCountryTabs() {
+  const bar = document.getElementById('countryTabBar');
+  if (!bar) return;
+
+  // Count stocks per country
+  const counts = {};
+  let total = 0;
+  Object.values(STOCKS).forEach(s => {
+    const c = _country(s);
+    counts[c] = (counts[c] || 0) + 1;
+    total++;
+  });
+
+  const countryOrder = ['United States','Hong Kong / China','United Kingdom','Europe','Singapore','Japan','Korea','Australia','Other'];
+  const countries = countryOrder.filter(c => counts[c]);
+
+  bar.innerHTML = '';
+
+  // "All" tab
+  const allTab = document.createElement('button');
+  allTab.className = 'country-tab' + (_activeCountryTab === 'All' ? ' active' : '');
+  allTab.innerHTML = 'All <span class="tab-count">' + total + '</span>';
+  allTab.onclick = () => setCountryTab('All');
+  bar.appendChild(allTab);
+
+  countries.forEach(c => {
+    const tab = document.createElement('button');
+    tab.className = 'country-tab' + (_activeCountryTab === c ? ' active' : '');
+    const label = c.replace(' / China','').replace('United ','');
+    tab.innerHTML = label + ' <span class="tab-count">' + counts[c] + '</span>';
+    tab.onclick = () => setCountryTab(c);
+    bar.appendChild(tab);
+  });
+}
+
+function setCountryTab(country) {
+  _activeCountryTab = country;
+  // Update tab active states
+  document.querySelectorAll('.country-tab').forEach(tab => {
+    const label = tab.textContent.replace(/\d+/g,'').trim();
+    const isAll = country === 'All' && (label === 'All' || label.trim() === 'All');
+    const matches = country !== 'All' && (
+      country.includes(label) || label.includes(label.split(' ')[0])
+    );
+    tab.classList.toggle('active', tab.onclick.toString().includes("'" + country + "'") || tab.onclick.toString().includes('"' + country + '"'));
+  });
+  // Rebuild properly
+  buildCountryTabs();
+  applyAllFilters();
+}
+
+
+function setPriorityFilter(val) {
+  document.querySelectorAll('.pf-chip').forEach(b => b.classList.remove('pf-active'));
+  const btn = document.getElementById('pf-' + val);
+  if (btn) btn.classList.add('pf-active');
+  const hidden = document.getElementById('priorityFilter');
+  if (hidden) hidden.value = val;
+
+  // Update count badge
+  const counts = { all:0, bought:0, watchlist:0, backburner:0 };
+  Object.values(STOCKS).forEach(s => {
+    counts.all++;
+    const p = (s.priority || '').toLowerCase();
+    if (p === 'bought') counts.bought++;
+    else if (p === 'watchlist') counts.watchlist++;
+    else if (p === 'backburner') counts.backburner++;
+  });
+  const countEl = document.getElementById('priorityCount');
+  if (countEl) {
+    const n = counts[val] !== undefined ? counts[val] : counts.all;
+    countEl.textContent = n + ' stocks';
+  }
+  applyAllFilters();
+}
+
+function applyAllFilters() {
+  const tbody = document.getElementById('watchlistBody');
+  if (!tbody) return;
+  const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const ratingVal = document.querySelector('.rating-chip.active')?.getAttribute('data-rating') || 'all';
+  const priorityVal = (document.getElementById('priorityFilter')?.value || 'all').toLowerCase();
+
+  let visible = 0;
+  Array.from(tbody.querySelectorAll('tr[data-ticker]')).forEach(tr => {
+    const ticker = tr.getAttribute('data-ticker');
+    const s = STOCKS[ticker];
+    if (!s) { tr.style.display = 'none'; return; }
+
+    // Country filter
+    if (_activeCountryTab !== 'All' && _country(s) !== _activeCountryTab) {
+      tr.style.display = 'none'; return;
+    }
+    // Rating filter
+    if (ratingVal !== 'all' && s.rating !== ratingVal) {
+      tr.style.display = 'none'; return;
+    }
+    // Priority filter
+    if (priorityVal !== 'all') {
+      const p = (s.priority || '').toLowerCase();
+      if (priorityVal === 'bought' && p !== 'bought') { tr.style.display = 'none'; return; }
+      if (priorityVal === 'watchlist' && p !== 'watchlist') { tr.style.display = 'none'; return; }
+      if (priorityVal === 'backburner' && p !== 'backburner') { tr.style.display = 'none'; return; }
+    }
+    // Search filter
+    if (searchVal) {
+      const hay = (s.ticker + ' ' + s.name + ' ' + s.sector).toLowerCase();
+      if (!hay.includes(searchVal)) { tr.style.display = 'none'; return; }
+    }
+
+    tr.style.display = '';
+    visible++;
+  });
+
+  const countEl = document.getElementById('filterCount');
+  if (countEl) countEl.textContent = visible + ' stocks';
+
+  // Hide/show sector header rows based on visible siblings
+  Array.from(tbody.querySelectorAll('tr.sector-header, tr.country-header, tr.subsector-header')).forEach(hr => {
+    let next = hr.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains('country-header') && !next.classList.contains('sector-header')) {
+      if (next.style.display !== 'none' && next.hasAttribute('data-ticker')) hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    hr.style.display = hasVisible ? '' : 'none';
+  });
+}
+
 
 function buildW52Bar(s) {
   if (!s.week52High || !s.week52Low || s.week52High <= s.week52Low) return '<span class="px-chg-nil">—</span>';
@@ -6792,8 +6970,8 @@ function updateTableRow(s) {
   if (liveEl)   liveEl.innerHTML  = '<span class="price-mono">$' + fmtPrice(s.livePrice) + '</span>';
   if (pxchgEl)  pxchgEl.innerHTML = buildPxChg(s);
   if (w52El)    w52El.innerHTML   = buildW52Bar(s);
-  if (rdiffEl)  rdiffEl.innerHTML = '<span class="ref-mono">' + (reportDiff >= 0 ? '+' : '') + reportDiff.toFixed(1) + '%</span>';
-  if (upsideEl) upsideEl.innerHTML= '<span class="ref-mono">' + (upside >= 0 ? '+' : '') + upside.toFixed(1) + '%</span>';
+  if (rdiffEl)  rdiffEl.innerHTML = buildDeltaPct(reportDiff, 25);
+  if (upsideEl) upsideEl.innerHTML= buildDeltaPct(upside, 50);
   if (flagEl)   flagEl.innerHTML  = buildEntryFlag(entryDiff);
 
   // Update SQ/Dis pill
@@ -8810,46 +8988,46 @@ async function callClaude(prompt, useSearch = false) {
     "netSentiment": "MILDLY_BULLISH"
   },
   "INTU": {
-    "livePrice": 413.6,
-    "livePxChange": -1,
+    "livePrice": 319.94,
+    "livePxChange": 2.1,
     "week52High": 813.7,
-    "week52Low": 349,
-    "liveMarketCap": 114692158965,
-    "dislocationScore": 7,
-    "netSentiment": "MILDLY_BULLISH",
-    "_cachedAdviceHTML": "<div style=\"display:flex;flex-direction:column;gap:8px\"><div style=\"padding:8px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--cyan)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:4px\">What's Changed Since Report</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>Q2 FY2026 (Feb 26, 2026): Revenue $4.65B up 17% YoY, EPS $4.15 vs consensus $3.68, but Q3 guidance disappoints at 10% revenue growth vs 12%+ thesis target</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>Mailchimp turnaround delayed: Revenue down slightly YoY, return to double-digit growth now pushed beyond FY2026</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>AI partnerships formalized: Multiyear deal with Anthropic signed, all four core apps launched in OpenAI directory, 3M+ customers using AI agents with 85%+ repeat engagement</div></div><div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap\"><span style=\"font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase\">Recommendation</span><span style=\"font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--text3)\">→ UNCHANGED</span><span style=\"font-size:11px;color:var(--text2);flex:1\">Q2 results strong but Q3 guidance (10% revenue growth) falls short of 12%+ thesis validation threshold—hold for May 21 Q3 tax season results as planned.</span></div><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:8px\"><div style=\"padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--blue)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:4px\">▶ Immediate Action</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4\">Hold position through May 21 Q3 earnings—tax season results remain binary catalyst for thesis validation and multiple re-rating.</div></div><div style=\"padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--gold)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:4px\">▶ Watch in 30 Days</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4\">Q3 FY2026 earnings (May 21, 2026) will reveal TurboTax assisted-segment share gains and whether full-year revenue growth trajectory can exceed 12%</div></div></div><div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:6px\"><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--gold)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">★ Debate 1</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Can AI disrupt Intuit's core franchise, or is AI a net positive?…</div><span style=\"font-size:9px;font-weight:700;color:var(--green)\">▲ Bull Lean</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">LIVE</span></div><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">Debate 2</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Can Intuit move upmarket while fixing Mailchimp?…</div><span style=\"font-size:9px;font-weight:700;color:var(--red)\">▼ Bear Lean</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">ESCALATED</span></div><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">Debate 3</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Is the valuation reset temporary or structural — will the 17.6x P…</div><span style=\"font-size:9px;font-weight:700;color:var(--amber)\">◆ Neutral</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">LIVE</span></div></div><div style=\"font-size:9px;color:var(--text3);margin-top:4px;font-family:DM Mono,monospace\">Peers: N/A</div><div style=\"margin-top:4px;font-size:9px;color:var(--text2);font-style:italic\">MSFT remains alternative at ~30x with cleaner AI narrative, though INTU's 17.6x offers deeper value if tax season thesis validates in May</div><div style=\"margin-top:8px;padding:8px 10px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:5px;border-left:3px solid var(--red)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--red);text-transform:uppercase;margin-bottom:3px\">⚠ Risk Alert</div><div style=\"font-size:11px;color:var(--text2);line-height:1.4\">IRS Direct File regulatory threat resurfaced—lawmakers pushing bill to expand free IRS tax prep, which could structurally impair TurboTax TAM</div></div></div>",
-    "_cachedAssessmentTime": "AI · 10:37 pm",
-    "_cachedLastRefreshed": "Refreshed: 10:37 pm",
+    "week52Low": 302.36,
+    "liveMarketCap": 88741500000,
+    "dislocationScore": 9,
+    "netSentiment": "NEUTRAL",
+    "_cachedAdviceHTML": "<div style=\"display:flex;flex-direction:column;gap:8px\"><div style=\"padding:8px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--cyan)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:4px\">What's Changed Since Report</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>Q3 FY2026 (May 20): Revenue $8.56B +10% YoY, EPS $12.80 beat ($12.28 est.) — full-year guidance raised to $21.34–21.37B (13–14% growth), but Q3 revenue growth of 10% missed the critical 12%+ thesis validation threshold</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>TurboTax disappointed: DIY paying units +2% only; company flagged it \"did not have the tax season we expected\" with pressure on price-sensitive DIY filers; TurboTax revenue guidance trimmed to $5.277–5.282B (from $5.305–5.330B); most significant industry-wide IRS filer contraction since post-COVID (-30bps)</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>17% workforce cut announced (~3,000+ roles eliminated, $300–340M restructuring charge) — largest restructuring in company history; aggressive pivot to AI-led delivery, replacing human roles with Intuit Assist</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>AI adoption accelerating: 30% of QuickBooks users engaging with Assist (up from 10% prior quarter); TurboTax Live = 53% of TurboTax revenue; ARPU +11%; QBO Accounting +22%; Credit Karma +23% to $616M</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4;padding-left:10px;position:relative;margin-bottom:2px\"><span style=\"position:absolute;left:0;color:var(--cyan)\">•</span>Stock dropped ~20% post-earnings to ~$302–320 range; trading at ~$320 today (~13.4x fwd P/E) — new 52-week low ~$302; analyst consensus target cut 11% to ~$525 (82% Buy consensus maintained)</div></div><div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap\"><span style=\"font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase\">Recommendation</span><span style=\"font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--amber)\">→ THESIS WEAKENED</span><span style=\"font-size:11px;color:var(--text2);flex:1\">The May 21 thesis hinge delivered a partial result: EPS beat, full-year guidance raised, AI adoption surging — but the critical 12%+ Q3 revenue threshold was missed (10% actual), TurboTax DIY pressure signals structural headwind, and the 17% workforce cut reframes the investment case around AI-led restructuring rather than pure growth.</span></div><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:8px\"><div style=\"padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--blue)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:4px\">▶ Immediate Action</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4\">Hold existing Tranche 1 position — do NOT add. The $350–370 tranche 2 entry was blown through on a thesis miss; deploying more capital into structural uncertainty risks averaging down into permanent impairment. Sit on hands until August Q4 results.</div></div><div style=\"padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--gold)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:4px\">▶ Watch in 30–90 Days</div><div style=\"font-size:10px;color:var(--text2);line-height:1.4\">Q4 FY2026 earnings (August 2026) is the new binary event: full-year revenue 13–14% confirmed + QuickBooks AI adoption sustains = re-rating case intact. Confirmed TurboTax structural share loss = downgrade to HOLD.</div></div></div><div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:6px\"><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px;border-left:3px solid var(--gold)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">★ Debate 1</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Can AI disrupt Intuit's core franchise, or is AI a net positive?…</div><span style=\"font-size:9px;font-weight:700;color:var(--amber)\">◆ Neutral</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">ESCALATED</span></div><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">Debate 2</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Can Intuit move upmarket while fixing Mailchimp?…</div><span style=\"font-size:9px;font-weight:700;color:var(--red)\">▼ Bear Lean</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">ESCALATED</span></div><div style=\"padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:5px\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:3px\">Debate 3</div><div style=\"font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.3\">Is the valuation reset temporary or structural — will the 17.6x P…</div><span style=\"font-size:9px;font-weight:700;color:var(--red)\">▼ Bear Lean</span><span style=\"font-size:8px;color:var(--text3);margin-left:6px\">ESCALATED</span></div></div><div style=\"font-size:9px;color:var(--text3);margin-top:4px;font-family:DM Mono,monospace\">Peers: N/A</div><div style=\"margin-top:4px;font-size:9px;color:var(--text2);font-style:italic\">MSFT remains alternative at ~30x with cleaner AI narrative — INTU's 13.4x fwd P/E is extreme value IF TurboTax DIY pressure proves cyclical, but MSFT is preferred if AI disruption to DIY tax proves structural</div><div style=\"margin-top:8px;padding:8px 10px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:5px;border-left:3px solid var(--red)\"><div style=\"font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--red);text-transform:uppercase;margin-bottom:3px\">⚠ Risk Alert</div><div style=\"font-size:11px;color:var(--text2);line-height:1.4\">TurboTax structural impairment risk elevated — DIY paying units +2% with \"most significant industry-wide IRS filer contraction since post-COVID\" may signal a permanent AI-driven shift away from paid DIY tax prep; the 17% workforce cut validates Intuit itself views AI as replacing, not augmenting, human roles at scale</div></div></div>",
+    "_cachedAssessmentTime": "AI · May 24, 2026",
+    "_cachedLastRefreshed": "Refreshed: May 24, 2026",
     "_cachedThesisBanner": {
-      "cls": "thesis-banner INTACT",
-      "text": "✓ THESIS INTACT — Q2 FY2026 results beat expectations with 17% revenue growth and strong AI adoption momentum (3M+ customers using AI agents), but Q3 guidance of 10% revenue growth fell short of the 12%+ thesis validation threshold."
+      "cls": "thesis-banner WEAKENED",
+      "text": "⚠ THESIS WEAKENED — Q3 FY2026 (May 20) thesis hinge delivered a partial result: EPS $12.80 beat, full-year guidance raised to 13–14% growth, AI adoption surging (30% QBO users on Assist). But Q3 revenue growth of 10% missed the 12%+ validation threshold, TurboTax DIY units +2% only with structural pressure flagged, and a 17% workforce cut (~3,000 roles, $300–340M charge) signals the business model is being restructured around AI. Stock dropped ~20% to ~$320 — now at 13.4x fwd P/E, new 52-week low territory."
     },
-    "_lastRefreshPrice": 416.4,
+    "_lastRefreshPrice": 319.94,
     "_cachedDebateUpdates": {
       "d1": {
-        "status": "LIVE",
-        "verdict": "BULL_LEANING",
-        "update": "Management positioned AI as accretive rather than disruptive, citing regulated environment requiring compliance/security/accuracy as moat. Over 3M customers now using AI agents with 85%+ repeat engagement, and partnerships with OpenAI and Anthropic formalized with data protections. However, market skepticism persists—stock sold off 6% despite Q2 beat—and analysts specifically questioned AI disruption risk to tax business.",
+        "status": "ESCALATED",
+        "verdict": "NEUTRAL",
+        "update": "Evidence is now genuinely mixed. The bear signal: TurboTax DIY paying units grew just 2% and management admitted it \"did not have the tax season we expected\" — precisely the AI-at-the-margins disruption the bear case warned about, with price-sensitive filers defecting. The bull signal: TurboTax Live (AI+human hybrid) = 53% of TurboTax revenue and ARPU +11%, 30% of QuickBooks users now on Assist vs 10% prior quarter, and the 17% workforce reduction shows Intuit is successfully replacing human costs with AI. The key unresolved question is whether DIY filer pressure is cyclical (macro-driven) or structural (AI alternatives permanently displacing paid DIY tax prep).",
         "isPrimary": true,
         "question": "Can AI disrupt Intuit's core franchise, or is AI a net positive?"
       },
       "d2": {
         "status": "ESCALATED",
         "verdict": "BEAR_LEANING",
-        "update": "Mailchimp revenue declined slightly YoY in Q2, with return to double-digit growth now pushed beyond FY2026 (previously expected within FY2026). Management cited mid-market traction but acknowledged churn/acquisition issues among smaller customers taking longer than expected. Meanwhile, upmarket push shows progress with construction ERP edition launched and direct sales capacity expanding 30%.",
+        "update": "QBO Online Ecosystem +19% and QBO Accounting +22% confirm the upmarket move is gaining traction — construction ERP edition performing, direct sales expanding. However, the 17% workforce cut (largest in Intuit's history, $300–340M restructuring charge) signals cost pressure that extends beyond Mailchimp alone, suggesting the mid-market push is not yet generating the operating leverage needed to justify the growth investment. Mailchimp was conspicuously absent from Q3 highlights — no positive update on double-digit growth timeline after repeated delays is itself a bearish datapoint.",
         "isPrimary": false,
         "question": "Can Intuit move upmarket while fixing Mailchimp?"
       },
       "d3": {
-        "status": "LIVE",
-        "verdict": "MILDLY_BEARISH",
-        "update": "Analyst price targets compressed materially post-Q2: Susquehanna cut to $720 from $819 citing peer compression (now 27x target), TD Cowen to $658 from $802, Jefferies to $650 from $850. Stock trading ~17.6x forward suggests multiple compression is sector-wide phenomenon rather than Intuit-specific, but Q3 guidance miss (10% vs 12%+) undermines near-term re-rating catalyst.",
+        "status": "ESCALATED",
+        "verdict": "BEAR_LEANING",
+        "update": "Multiple compressed further — stock now at ~$320 implies ~13.4x fwd P/E on $23.83 EPS guidance, below the bear scenario of \"stays at 15–17x\" from the original report. Analyst consensus target cut 11% to ~$525 post-Q3, with 82% Buy consensus maintained but individual targets slashed. The market is refusing to re-rate despite the EPS beat and raised full-year guidance, suggesting structural risk premium is being priced in. Re-rating catalyst is now pushed entirely to Q4 FY2026 (August) — even at a \"new normal\" 20x, implied upside is ~49% but requires confirmation that TurboTax pressure is cyclical, not permanent.",
         "isPrimary": false,
         "question": "Is the valuation reset temporary or structural — will the 17.6x P/E re-rate?"
       }
     },
-    "_cachedInstruction": "Hold position through May 21 Q3 earnings—tax season results remain binary catalyst for thesis validation and multiple re-rating.",
-    "_cachedTrigger": "Q3 FY2026 earnings (May 21, 2026) will reveal TurboTax assisted-segment share gains and whether full-year revenue growth trajectory can exceed 12%"
+    "_cachedInstruction": "Hold existing Tranche 1 position — do NOT add. The $350–370 tranche 2 entry was blown through on a thesis miss; deploying more capital into structural uncertainty risks averaging down into permanent impairment. Reassess at Q4 FY2026 earnings (August 2026).",
+    "_cachedTrigger": "Q4 FY2026 earnings (August 2026) — if full-year revenue lands 13–14% and QuickBooks AI adoption sustains above 30% of users on Assist, the re-rating case remains intact. If TurboTax structural share loss is confirmed in the print, downgrade to HOLD."
   },
   "APO": {
     "livePrice": 106,
