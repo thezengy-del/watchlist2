@@ -350,13 +350,25 @@ function setPriorityForTicker(ticker, priority) {
 ─────────────────────────────────────────────────────────────────── */
 function openCard(ticker) {
   var s = STOCKS[ticker];
-  if (!s || !s.sheetFile) return;
+  if (!s) return;
 
   var overlay = document.getElementById('sheetOverlay');
   var frame   = document.getElementById('sheetFrame');
   if (!overlay || !frame) return;
 
-  frame.src = s.sheetFile;
+  var safeId = 'sheet-' + ticker.replace(/\./g, '_');
+  var tmpl   = document.getElementById(safeId);
+  var errEl  = document.getElementById('sheetError');
+
+  if (tmpl) {
+    if (errEl) errEl.style.display = 'none';
+    frame.style.display = '';
+    frame.srcdoc = tmpl.innerHTML;
+  } else {
+    frame.style.display = 'none';
+    if (errEl) { errEl.style.display = 'flex'; }
+  }
+
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
@@ -786,6 +798,18 @@ async function refreshAllPrices() {
       return isNaN(n) ? null : n;
     };
 
+    // parsePct: handles both decimal fractions (file:// / Apps Script → 0.044)
+    // and formatted percentage strings (HTTPS / direct CSV → "4.40%").
+    // If the raw string contains %, the number is already in percentage form.
+    // Otherwise assume it's a decimal fraction and multiply by 100.
+    const parsePct = v => {
+      if (v === undefined || v === null || v === '') return null;
+      const s = String(v);
+      const n = parseFloat(s.replace(/[,$\s]/g, '').replace('%', ''));
+      if (isNaN(n)) return null;
+      return s.includes('%') ? n : n * 100;
+    };
+
     // Resolve "EXCHANGE:TICKER" or plain "TICKER" -> STOCKS key
     // Build name → STOCKS key lookup for name-based fallback
     const nameToKey = {};
@@ -859,10 +883,10 @@ async function refreshAllPrices() {
         if (vp.length >= 2) { s.week52Low = Math.min(...vp); s.week52High = Math.max(...vp); }
       }
       if (col.mktcap   >= 0) { const v = parseNum(row[col.mktcap]);   if (v && v > 0) s.liveMarketCap = v; }
-      if (col.pxchg    >= 0) { const v = parseNum(row[col.pxchg]);    if (v != null)  s.livePxChange  = v * 100; }
-      if (col.chgWeek  >= 0) { const v = parseNum(row[col.chgWeek]);  if (v != null)  s.chgWeek       = v * 100; }
-      if (col.chgMonth >= 0) { const v = parseNum(row[col.chgMonth]); if (v != null)  s.chgMonth      = v * 100; }
-      if (col.chg5m    >= 0) { const v = parseNum(row[col.chg5m]);    if (v != null)  s.chg5m         = v * 100; }
+      if (col.pxchg    >= 0) { const v = parsePct(row[col.pxchg]);    if (v != null)  s.livePxChange  = v; }
+      if (col.chgWeek  >= 0) { const v = parsePct(row[col.chgWeek]);  if (v != null)  s.chgWeek       = v; }
+      if (col.chgMonth >= 0) { const v = parsePct(row[col.chgMonth]); if (v != null)  s.chgMonth      = v; }
+      if (col.chg5m    >= 0) { const v = parsePct(row[col.chg5m]);    if (v != null)  s.chg5m         = v; }
 
       updateTableRow(s);
       updated++;
