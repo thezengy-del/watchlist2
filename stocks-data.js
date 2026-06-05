@@ -315,6 +315,219 @@ const STOCKS = {
     sector: 'Consumer Electronics / EV',
     exchange: 'HKEX', currency: 'HKD',
     sheetFile: 'Company sheets/Xiaomi.html'
+  },
+  ADBE: {
+    ticker: 'ADBE',
+    name: 'Adobe Inc.',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 9,
+    dislocationScore: 9, dislocationOrig: 9,
+    targetPrice: 387, targetPriceOrig: 389,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Creative / Enterprise Software',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/Adobe.html'
+  },
+  ARES: {
+    ticker: 'ARES',
+    name: 'Ares Management Corporation',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 8, dislocationOrig: 8,
+    targetPrice: 175, targetPriceOrig: 176,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Alt. Asset Management',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Ares.html'
+  },
+  DAL: {
+    ticker: 'DAL',
+    name: 'Delta Air Lines Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 7, dislocationOrig: 7,
+    targetPrice: 85, targetPriceOrig: 74.10,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Airlines',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/DeltaAirlines.html'
+  },
+  GRAB: {
+    ticker: 'GRAB',
+    name: 'Grab Holdings Limited',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 8, dislocationOrig: 8,
+    targetPrice: 5.85, targetPriceOrig: 6.12,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Southeast Asia Super App',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/GrabHoldings.html'
+  },
+  KKR: {
+    ticker: 'KKR',
+    name: 'KKR & Co. Inc.',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 8, dislocationOrig: 8,
+    targetPrice: 117, targetPriceOrig: 113.50,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Alt. Asset Management',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/KKR.html'
+  },
+  MDB: {
+    ticker: 'MDB',
+    name: 'MongoDB Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 6, dislocationOrig: 6,
+    targetPrice: 300, targetPriceOrig: 257,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Database / Developer Platform',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/MongoDB.html'
+  },
+  RCL: {
+    ticker: 'RCL',
+    name: 'Royal Caribbean Cruises',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 5, dislocationOrig: 5,
+    targetPrice: 366, targetPriceOrig: 385,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Cruise / Travel Leisure',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/RoyalCaribbean.html'
+  },
+  SE: {
+    ticker: 'SE',
+    name: 'Sea Limited',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 7, dislocationOrig: 7,
+    targetPrice: 120, targetPriceOrig: 143,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Southeast Asia Internet',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/SeaLtd.html'
+  },
+  SNOW: {
+    ticker: 'SNOW',
+    name: 'Snowflake Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 7, dislocationOrig: 7,
+    targetPrice: 303, targetPriceOrig: 210,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Data Cloud / Analytics',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Snowflake.html'
+  },
+  SPGI: {
+    ticker: 'SPGI',
+    name: 'S&P Global Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 6, dislocationOrig: 6,
+    targetPrice: 465, targetPriceOrig: 446,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Financial Data & Analytics',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/SPGlobal.html'
+  },
+  ULTA: {
+    ticker: 'ULTA',
+    name: 'Ulta Beauty Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 5, dislocationOrig: 5,
+    targetPrice: 693, targetPriceOrig: 693,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Beauty Retail',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/UltaBeauty.html'
+  },
+  GOOG: {
+    ticker: 'GOOG',
+    name: 'Alphabet Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 5, dislocationOrig: 3,
+    targetPrice: 370, targetPriceOrig: 290,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Internet / Search / Cloud',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/Alphabet.html',
+    _embeddedAt: '2026-06-05T00:00:00Z'
+  },
+  MSFT: {
+    ticker: 'MSFT',
+    name: 'Microsoft Corporation',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 9,
+    dislocationScore: 6, dislocationOrig: 7,
+    targetPrice: 545, targetPriceOrig: 520,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Enterprise Software / Cloud',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/Microsoft.html',
+    _embeddedAt: '2026-06-05T00:00:00Z'
+  },
+  AER: {
+    ticker: 'AER',
+    name: 'AerCap Holdings N.V.',
+    rating: 'BUY',
+    priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 5, dislocationOrig: 6,
+    targetPrice: 170, targetPriceOrig: 175,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Aircraft Leasing',
+    exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/AerCap.html',
+    _embeddedAt: '2026-06-05T00:00:00Z'
+  },
+  '868.HK': {
+    ticker: '868.HK',
+    name: 'Xinyi Glass Holdings Limited',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 6, sqScoreOrig: 6,
+    dislocationScore: 6, dislocationOrig: 5,
+    targetPrice: 10.80, targetPriceOrig: 10.80,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Glass Manufacturing',
+    exchange: 'HKEX', currency: 'HKD',
+    sheetFile: 'New Company Sheets/XinyiGlass.html',
+    _embeddedAt: '2026-06-05T00:00:00Z'
+  },
+  PYPL: {
+    ticker: 'PYPL',
+    name: 'PayPal Holdings Inc.',
+    rating: 'HOLD',
+    priority: 'watchlist',
+    sqScore: 6, sqScoreOrig: 6,
+    dislocationScore: 6, dislocationOrig: 5,
+    targetPrice: 62, targetPriceOrig: 80,
+    livePrice: 0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Digital Payments',
+    exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/PayPal.html',
+    _embeddedAt: '2026-06-05T00:00:00Z'
   }
 };
 
@@ -798,16 +1011,20 @@ async function refreshAllPrices() {
       return isNaN(n) ? null : n;
     };
 
-    // parsePct: handles both decimal fractions (file:// / Apps Script → 0.044)
-    // and formatted percentage strings (HTTPS / direct CSV → "4.40%").
-    // If the raw string contains %, the number is already in percentage form.
-    // Otherwise assume it's a decimal fraction and multiply by 100.
+    // parsePct: handles three formats from Google Sheets CSV:
+    //   1. "4.40%"  — already percentage with sign  → return n as-is
+    //   2. 0.044    — true decimal fraction (Sheets stores % cells this way in some exports) → × 100
+    //   3. 4.4      — plain number already in pct form (manual entry or GOOGLEFINANCE) → return as-is
+    // Heuristic for case 2 vs 3: |n| < 1 means decimal fraction → multiply by 100.
+    // Edge case: genuine sub-1% values (e.g. 0.5%) stored as 0.005 → also caught correctly.
     const parsePct = v => {
       if (v === undefined || v === null || v === '') return null;
       const s = String(v);
       const n = parseFloat(s.replace(/[,$\s]/g, '').replace('%', ''));
       if (isNaN(n)) return null;
-      return s.includes('%') ? n : n * 100;
+      if (s.includes('%')) return n;          // already formatted as "4.40%" — use directly
+      if (n !== 0 && Math.abs(n) < 1) return n * 100;  // decimal fraction like 0.044 → 4.4%
+      return n;                               // already in pct form like 4.4 → 4.4%
     };
 
     // Resolve "EXCHANGE:TICKER" or plain "TICKER" -> STOCKS key
