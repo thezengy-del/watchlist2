@@ -16,7 +16,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRowYEHwV
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVP_R5LQlIwnFk08gAya3ClBErxSuELZ3meQrCJkuvSTl-m-_bEy_gfVxktdHw3kX0/exec';
 
 // Sheet column letters (A=first column). Set these to match your Google Sheet layout.
-const SHEET_COLS = { price: 'F', chgDay: 'G', chgWeek: 'U', chgMonth: 'V', chg5m: 'X' };
+const SHEET_COLS = { price: 'F', chgDay: 'T', chgWeek: 'V', chgMonth: 'W', chg5m: 'Y' };
 
 /* ── STOCK DEFINITIONS ───────────────────────────────────────────
    sqScore / dislocationScore  = current (updated) values
@@ -1322,11 +1322,15 @@ async function refreshAllPrices() {
     const parsePct = v => {
       if (v === undefined || v === null || v === '') return null;
       const s = String(v);
+      if (/loading|error|n\/a/i.test(s)) return null;
       const n = parseFloat(s.replace(/[,$\s]/g, '').replace('%', ''));
       if (isNaN(n)) return null;
-      if (s.includes('%')) return n;          // already formatted as "4.40%" — use directly
-      if (n !== 0 && Math.abs(n) < 1) return n * 100;  // decimal fraction like 0.044 → 4.4%
-      return n;                               // already in pct form like 4.4 → 4.4%
+      let result;
+      if (s.includes('%')) result = n;
+      else if (n !== 0 && Math.abs(n) < 1) result = n * 100;
+      else result = n;
+      // Reject implausible values — likely a wrong column or bad formula
+      return Math.abs(result) > 500 ? null : result;
     };
 
     // Resolve "EXCHANGE:TICKER" or plain "TICKER" -> STOCKS key
