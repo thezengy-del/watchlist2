@@ -16,7 +16,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRowYEHwV
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVP_R5LQlIwnFk08gAya3ClBErxSuELZ3meQrCJkuvSTl-m-_bEy_gfVxktdHw3kX0/exec';
 
 // Sheet column letters (A=first column). Set these to match your Google Sheet layout.
-const SHEET_COLS = { price: 'F', chgDay: 'G', chgWeek: 'T', chgMonth: 'U', chg5m: 'W' };
+const SHEET_COLS = { price: 'F', chgDay: 'R', chgWeek: 'T', chgMonth: 'U', chg5m: 'W' };
 
 /* ── STOCK DEFINITIONS ───────────────────────────────────────────
    sqScore / dislocationScore  = current (updated) values
@@ -1321,14 +1321,19 @@ async function refreshAllPrices() {
     // Edge case: genuine sub-1% values (e.g. 0.5%) stored as 0.005 → also caught correctly.
     const parsePct = v => {
       if (v === undefined || v === null || v === '') return null;
-      const s = String(v);
+      const s = String(v).trim();
       if (/loading|error|n\/a/i.test(s)) return null;
-      const n = parseFloat(s.replace(/[−–]/g, '-').replace(/[,$\s]/g, '').replace('%', ''));
+      // Accounting notation: (4.7%) means -4.7%
+      const isAccounting = s.startsWith('(') && s.endsWith(')');
+      const clean = s.replace(/[−–]/g, '-').replace(/[(),$\s]/g, '');
+      const hasPct = clean.includes('%');
+      const n = parseFloat(clean.replace('%', ''));
       if (isNaN(n)) return null;
       let result;
-      if (s.includes('%')) result = n;
+      if (hasPct) result = n;
       else if (n !== 0 && Math.abs(n) < 1) result = n * 100;
       else result = n;
+      if (isAccounting) result = -Math.abs(result);
       // Reject implausible values — likely a wrong column or bad formula
       return Math.abs(result) > 500 ? null : result;
     };
