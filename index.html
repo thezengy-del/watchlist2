@@ -253,6 +253,21 @@ tbody tr.SELL td:first-child  { border-left:3px solid var(--red); }
 }
 .sq-dot { width:8px; height:8px; border-radius:50%; }
 
+/* ── THEME DIVIDER ROWS ── */
+.theme-divider-row { pointer-events: none; }
+.theme-divider-cell {
+  padding: 14px 12px 4px !important;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: none !important;
+  background: transparent !important;
+}
+.theme-divider-row + tr td { border-top: 1px solid var(--border2); }
+
 .stale-chip {
   font-size:8px; font-weight:700; letter-spacing:.07em; padding:2px 6px; border-radius:3px;
   background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber-bd); text-transform:uppercase;
@@ -1160,7 +1175,7 @@ th.sortable:hover { color:var(--text2); background:var(--s2); }
         <th onclick="sortTable(7)" class="sortable" data-col="7">Target <span class="sort-icon">⇅</span></th>
         <th onclick="sortTable(8)" class="sortable" data-col="8">Upside <span class="sort-icon">⇅</span></th>
         <th onclick="sortTable(9)" class="sortable" data-col="9">Sector <span class="sort-icon">⇅</span></th>
-        <th></th>
+        <th onclick="sortTable(13)" class="sortable" data-col="13">Updated <span class="sort-icon">⇅</span></th>
       </tr>
     </thead>
     <tbody id="watchlistBody"></tbody>
@@ -2467,12 +2482,13 @@ function toggleSectorGroup() {
 function renderConvictionStrip() {
   const cont = document.getElementById('convictionCards');
   if (!cont) return;
-  // Get all BUY-rated stocks, score by SQ × upside (or SQ × Dis when no live price)
+  // Get all BUY-rated stocks, ranked by PW target upside % (highest first)
+  // Falls back to Dislocation score × 10 when no live price is available
   const buys = Object.values(STOCKS)
-    .filter(s => s.rating === 'BUY' && s.targetPrice > 0)
+    .filter(s => (s.rating === 'BUY' || s.rating === 'STRONG BUY') && s.targetPrice > 0)
     .map(s => {
       const up = s.livePrice > 0 ? (s.targetPrice - s.livePrice) / s.livePrice * 100 : null;
-      const score = up !== null ? (s.sqScore || 0) * up : (s.sqScore || 0) * (s.dislocationScore || 0) * 3;
+      const score = up !== null ? up : (s.dislocationScore || 0) * 10;
       return { s, upside: up, score };
     })
     .sort((a, b) => b.score - a.score)

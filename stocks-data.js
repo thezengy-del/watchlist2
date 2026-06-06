@@ -528,6 +528,208 @@ const STOCKS = {
     exchange: 'NASDAQ', currency: 'USD',
     sheetFile: 'New Company Sheets/PayPal.html',
     _embeddedAt: '2026-06-05T00:00:00Z'
+  },
+
+  /* ── BATCH 1: Memoconverter + Memorefresh (Jun 6 2026) ─────────── */
+  MBLY: {
+    ticker: 'MBLY', name: 'Mobileye Global Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 6,
+    dislocationScore: 6, dislocationOrig: 8,
+    targetPrice: 14.00, targetPriceOrig: 13.05,
+    livePrice: 10.56, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'ADAS / Autonomous Driving', exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/Mobileye.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  AWI: {
+    ticker: 'AWI', name: 'Armstrong World Industries Inc.',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 5, dislocationOrig: 4,
+    targetPrice: 185, targetPriceOrig: 190,
+    livePrice: 159.7, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Building Materials / Ceiling Systems', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/ArmstrongWorldIndustries.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  '0700.HK': {
+    ticker: '0700.HK', name: 'Tencent Holdings Limited',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 9,
+    dislocationScore: 6, dislocationOrig: 7,
+    targetPrice: 664, targetPriceOrig: 646,
+    livePrice: 453.2, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Internet / Gaming / AI', exchange: 'HKEX', currency: 'HKD',
+    sheetFile: 'New Company Sheets/Tencent.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  'BRK.B': {
+    ticker: 'BRK.B', name: 'Berkshire Hathaway Inc.',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 5, dislocationOrig: 4,
+    targetPrice: 505, targetPriceOrig: 494,
+    livePrice: 485.86, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Conglomerate / Insurance / Rail', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/BerkshireHathaway.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  BKNG: {
+    ticker: 'BKNG', name: 'Booking Holdings Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 8, dislocationOrig: 7,
+    targetPrice: 218, targetPriceOrig: 218,
+    livePrice: 168.0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Online Travel / OTA', exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/BookingHoldings.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  CMG: {
+    ticker: 'CMG', name: 'Chipotle Mexican Grill Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 6, sqScoreOrig: 7,
+    dislocationScore: 8, dislocationOrig: 7,
+    targetPrice: 41.70, targetPriceOrig: 43.95,
+    livePrice: 29.84, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Fast Casual Restaurants', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Chipotle.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  GE: {
+    ticker: 'GE', name: 'GE Aerospace',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 4, dislocationOrig: 4,
+    targetPrice: 318, targetPriceOrig: 315,
+    livePrice: 327.65, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Aerospace Engines / Aftermarket', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/GEAerospace.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  PANW: {
+    ticker: 'PANW', name: 'Palo Alto Networks Inc.',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 4, dislocationOrig: 7,
+    targetPrice: 255, targetPriceOrig: 193.50,
+    livePrice: 273.56, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Cybersecurity Platform', exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/PaloAltoNetworks.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+
+  /* ── BATCH 2: Memoconverter + Memorefresh (Jun 6 2026) ─────────── */
+  TYL: {
+    ticker: 'TYL', name: 'Tyler Technologies Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 7, dislocationOrig: 6,
+    targetPrice: 455, targetPriceOrig: 434,
+    livePrice: 312.07, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Government SaaS / GovTech', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/TylerTechnologies.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  ECPG: {
+    ticker: 'ECPG', name: 'Encore Capital Group Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 7,
+    dislocationScore: 6, dislocationOrig: 7,
+    targetPrice: 98.00, targetPriceOrig: 88.85,
+    livePrice: 80.6, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Specialty Finance / Debt Purchasing', exchange: 'NASDAQ', currency: 'USD',
+    sheetFile: 'New Company Sheets/EncoreCapitalGroup.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  GIS: {
+    ticker: 'GIS', name: 'General Mills Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 5, sqScoreOrig: 6,
+    dislocationScore: 8, dislocationOrig: 8,
+    targetPrice: 38, targetPriceOrig: 45,
+    livePrice: 33.2, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Consumer Staples / Packaged Foods', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/GeneralMills.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  DHR: {
+    ticker: 'DHR', name: 'Danaher Corporation',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 8,
+    dislocationScore: 8, dislocationOrig: 8,
+    targetPrice: 240, targetPriceOrig: 224,
+    livePrice: 186.78, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Life Science Tools / Bioprocessing', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Danaher.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  WMT: {
+    ticker: 'WMT', name: 'Walmart Inc.',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 4, dislocationOrig: 3,
+    targetPrice: 122, targetPriceOrig: 118.25,
+    livePrice: 117.71, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Mass Retail / Grocery / Advertising', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Walmart.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  PGR: {
+    ticker: 'PGR', name: 'The Progressive Corporation',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 8,
+    dislocationScore: 8, dislocationOrig: 7,
+    targetPrice: 252, targetPriceOrig: 234,
+    livePrice: 204.02, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'P&C Auto Insurance', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/ProgressiveCorporation.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  '9992.HK': {
+    ticker: '9992.HK', name: 'Pop Mart International Group Limited',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 7, sqScoreOrig: 7,
+    dislocationScore: 6, dislocationOrig: 7,
+    targetPrice: 218, targetPriceOrig: 246,
+    livePrice: 173.4, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Art Toys / Consumer Discretionary', exchange: 'HKEX', currency: 'HKD',
+    sheetFile: 'New Company Sheets/PopMart.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  ETN: {
+    ticker: 'ETN', name: 'Eaton Corporation plc',
+    rating: 'HOLD', priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 8,
+    dislocationScore: 5, dislocationOrig: 4,
+    targetPrice: 405, targetPriceOrig: 392,
+    livePrice: 395.94, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Electrical / Power Management / Data Center', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/Eaton.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  ORCL: {
+    ticker: 'ORCL', name: 'Oracle Corporation',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 8, sqScoreOrig: 8,
+    dislocationScore: 6, dislocationOrig: 7,
+    targetPrice: 310, targetPriceOrig: 310,
+    livePrice: 220.84, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Cloud / Database / AI Infrastructure', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/OracleCorporation.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
+  },
+  NOW: {
+    ticker: 'NOW', name: 'ServiceNow Inc.',
+    rating: 'BUY', priority: 'watchlist',
+    sqScore: 9, sqScoreOrig: 9,
+    dislocationScore: 7, dislocationOrig: 6,
+    targetPrice: 230, targetPriceOrig: 230,
+    livePrice: 119.0, livePxChange: 0, week52High: 0, week52Low: 0,
+    sector: 'Enterprise SaaS / AI Workflow', exchange: 'NYSE', currency: 'USD',
+    sheetFile: 'New Company Sheets/ServiceNow.html',
+    _embeddedAt: '2026-06-06T00:00:00Z'
   }
 };
 
@@ -574,9 +776,18 @@ function openCard(ticker) {
   var errEl  = document.getElementById('sheetError');
 
   if (tmpl) {
+    // Preferred: embedded <template> — load via srcdoc (works offline/file://)
     if (errEl) errEl.style.display = 'none';
     frame.style.display = '';
+    frame.src = 'about:blank';
     frame.srcdoc = tmpl.innerHTML;
+  } else if (s.sheetFile) {
+    // Fallback: external HTML file referenced by sheetFile path
+    // srcdoc takes priority over src per HTML spec, so remove it first
+    if (errEl) errEl.style.display = 'none';
+    frame.style.display = '';
+    frame.removeAttribute('srcdoc');
+    frame.src = s.sheetFile;
   } else {
     frame.style.display = 'none';
     if (errEl) { errEl.style.display = 'flex'; }
@@ -637,17 +848,28 @@ function _buildRowHTML(s) {
   var upNum  = (target > 0 && live > 0) ? ((target - live) / live * 100) : null;
   var upStr  = _fmtPct(upNum);
 
-  // SQ / Dislocation with original in brackets
-  var sqStr  = s.sqScore + (s.sqScoreOrig && s.sqScoreOrig !== s.sqScore
-    ? ' <span style="font-size:9px;color:var(--text3)">(' + s.sqScoreOrig + ')</span>' : '');
-  var disStr = (s.dislocationScore || s.dislocationOrig || '—')
-    + ((s.dislocationOrig && s.dislocationOrig !== s.dislocationScore)
-      ? ' <span style="font-size:9px;color:var(--text3)">(' + s.dislocationOrig + ')</span>' : '');
-
-  var sqDisHTML = '<div class="sq-pill">'
-    + '<span class="sq-dot" style="background:var(--blue)"></span>' + sqStr
-    + '<span style="color:var(--text3);font-size:10px;margin:0 4px">/</span>'
-    + '<span class="sq-dot" style="background:var(--amber)"></span>' + disStr
+  // SQ / Dislocation — score-coloured badges (green ≥8, amber 6-7, red ≤5)
+  function _sc(n) {
+    if (n >= 8) return { bg:'var(--green-bg)',  bd:'var(--green-bd)',  tx:'var(--green)'  };
+    if (n >= 6) return { bg:'var(--amber-bg)',  bd:'var(--amber-bd)',  tx:'var(--amber)'  };
+    return             { bg:'var(--red-bg)',    bd:'var(--red-bd)',    tx:'var(--red)'    };
+  }
+  function _scoreBadge(label, cur, orig) {
+    var c = _sc(cur || 0);
+    var badge = '<span style="font-family:\'DM Mono\',monospace;font-size:10px;font-weight:700;'
+      + 'padding:2px 8px;border-radius:4px;letter-spacing:.04em;white-space:nowrap;'
+      + 'background:' + c.bg + ';color:' + c.tx + ';border:1px solid ' + c.bd + ';">'
+      + label + ' ' + (cur != null ? cur : '—') + '</span>';
+    var delta = (orig != null && orig !== cur)
+      ? '<div style="font-size:8px;color:var(--text3);font-family:\'DM Mono\',monospace;'
+        + 'text-align:center;margin-top:2px;letter-spacing:.02em;">was ' + orig + '</div>'
+      : '';
+    return '<div style="display:inline-flex;flex-direction:column;align-items:center;">'
+      + badge + delta + '</div>';
+  }
+  var sqDisHTML = '<div style="display:inline-flex;align-items:flex-start;gap:5px;">'
+    + _scoreBadge('SQ',  s.sqScore,          s.sqScoreOrig)
+    + _scoreBadge('Dis', s.dislocationScore, s.dislocationOrig)
     + '</div>';
 
   // Priority editable dropdown (stops row-click propagation)
@@ -686,26 +908,98 @@ function _buildRowHTML(s) {
     + '<td class="price-mono">' + targetStr + '</td>'
     + '<td class="chg-cell">' + upStr + '</td>'
     + '<td><span class="sector-chip">' + (s.sector || '—') + '</span></td>'
-    + '<td><button class="open-btn" onclick="event.stopPropagation();openCard(\'' + s.ticker + '\')">Open ↗</button></td>';
+    + '<td style="white-space:nowrap;">' + _fmtMemoDate(s._embeddedAt) + '</td>';
+}
+
+/* ── DATE FORMATTER ──────────────────────────────────────────── */
+function _fmtMemoDate(iso) {
+  if (!iso) return '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;">—</span>';
+  var d = new Date(iso);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dd  = String(d.getUTCDate()).padStart(2,'0');
+  var mmm = months[d.getUTCMonth()];
+  var yy  = String(d.getUTCFullYear()).slice(-2);
+  return '<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--text3);'
+    + 'letter-spacing:.04em;white-space:nowrap;">' + dd + '-' + mmm + '-' + yy + '</span>';
+}
+
+/* ── THEME MAPPING ────────────────────────────────────────────
+   Maps each stock's sector string to one of 6 broad themes.
+   Themes are intentionally wide — avoid creating more than 6-7.
+─────────────────────────────────────────────────────────────── */
+var _THEME_ORDER = [
+  'Technology',
+  'Internet & Media',
+  'Financials',
+  'Consumer',
+  'Industrials',
+  'Healthcare',
+  'Other'
+];
+
+function _getTheme(sector) {
+  if (!sector) return 'Other';
+  var s = sector;
+  if (/cloud|saas|software|ai infra|cyber|database|developer|govtech|government|semiconductor|data platform|it professional|electronic component|adas|autonomous|enterprise saa/i.test(s))
+    return 'Technology';
+  if (/internet|streaming|gaming|ad tech|online travel|\bota\b|super app|video platform|search|media|entertainment|consumer.*tech|digital bank|fintech|southeast asia/i.test(s))
+    return 'Internet & Media';
+  if (/insurance|asset management|payment|banking|exchange|financial data|specialty finance|debt|rating|conglomerate|p&c|p&amp;c|aviation.*financ|leasing/i.test(s))
+    return 'Financials';
+  if (/retail|restaurant|consumer|food|beauty|travel|leisure|cruise|airline|art toy|toy|grocery|pool/i.test(s))
+    return 'Consumer';
+  if (/aerospace|defense|electrical|building|logistics|aviation|auto|ev|power management|freight|glass|manufacturing/i.test(s))
+    return 'Industrials';
+  if (/healthcare|life science|bioprocess|medical|pharma/i.test(s))
+    return 'Healthcare';
+  return 'Other';
 }
 
 /* ── RENDER TABLE ────────────────────────────────────────────── */
+var _themeGrouped = true;   // default: group by theme; column sort disables this
+
+function _appendStockRow(tbody, s) {
+  var tr = document.createElement('tr');
+  tr.setAttribute('data-ticker', s.ticker);
+  tr.className = s.rating || 'HOLD';
+  tr.innerHTML = _buildRowHTML(s);
+  tr.addEventListener('click', function(e) {
+    var tag = e.target.tagName;
+    if (tag !== 'BUTTON' && tag !== 'SELECT' && tag !== 'OPTION') openCard(s.ticker);
+  });
+  tbody.appendChild(tr);
+}
+
 function renderTable() {
   var tbody = document.getElementById('watchlistBody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  Object.values(STOCKS).forEach(function(s) {
-    var tr = document.createElement('tr');
-    tr.setAttribute('data-ticker', s.ticker);
-    tr.className = s.rating || 'HOLD';
-    tr.innerHTML = _buildRowHTML(s);
-    tr.addEventListener('click', function(e) {
-      var tag = e.target.tagName;
-      if (tag !== 'BUTTON' && tag !== 'SELECT' && tag !== 'OPTION') openCard(s.ticker);
+  if (_themeGrouped) {
+    // Group stocks by broad theme, preserving insertion order within each group
+    var groups = {};
+    _THEME_ORDER.forEach(function(t) { groups[t] = []; });
+    Object.values(STOCKS).forEach(function(s) {
+      var t = _getTheme(s.sector);
+      if (!groups[t]) groups[t] = [];
+      groups[t].push(s);
     });
-    tbody.appendChild(tr);
-  });
+
+    _THEME_ORDER.forEach(function(theme) {
+      var stocks = groups[theme];
+      if (!stocks || stocks.length === 0) return;
+      // Theme divider row
+      var divTr = document.createElement('tr');
+      divTr.className = 'theme-divider-row';
+      divTr.setAttribute('data-divider', theme);
+      divTr.innerHTML = '<td colspan="15" class="theme-divider-cell">' + theme + '</td>';
+      tbody.appendChild(divTr);
+      // Stock rows
+      stocks.forEach(function(s) { _appendStockRow(tbody, s); });
+    });
+  } else {
+    Object.values(STOCKS).forEach(function(s) { _appendStockRow(tbody, s); });
+  }
 
   _updateHeaderStats();
 }
@@ -767,10 +1061,18 @@ function sortTable(col) {
     9: function(s) { return s.sector || ''; },
     10: function(s) { return s.chgWeek  != null ? s.chgWeek  : -999; },
     11: function(s) { return s.chgMonth != null ? s.chgMonth : -999; },
-    12: function(s) { return s.chg5m    != null ? s.chg5m    : -999; }
+    12: function(s) { return s.chg5m    != null ? s.chg5m    : -999; },
+    13: function(s) { return s._embeddedAt || ''; }
   };
   var fn  = colFns[col] || function(s) { return s.ticker; };
   var asc = _sortAsc;
+
+  // Column sort: flatten the theme grouping (remove divider rows, re-render flat)
+  if (_themeGrouped) {
+    _themeGrouped = false;
+    tbody.innerHTML = '';
+    Object.values(STOCKS).forEach(function(s) { _appendStockRow(tbody, s); });
+  }
 
   var rows = Array.from(tbody.querySelectorAll('tr[data-ticker]'));
   rows.sort(function(a, b) {
