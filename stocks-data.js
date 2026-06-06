@@ -16,7 +16,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRowYEHwV
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVP_R5LQlIwnFk08gAya3ClBErxSuELZ3meQrCJkuvSTl-m-_bEy_gfVxktdHw3kX0/exec';
 
 // Sheet column letters (A=first column). Set these to match your Google Sheet layout.
-const SHEET_COLS = { price: 'F', chgDay: 'R', chgWeek: 'T', chgMonth: 'U', chg5m: 'W' };
+const SHEET_COLS = { price: 'F', chgDay: 'G', chgWeek: 'U', chgMonth: 'V', chg5m: 'X' };
 
 /* ── STOCK DEFINITIONS ───────────────────────────────────────────
    sqScore / dislocationScore  = current (updated) values
