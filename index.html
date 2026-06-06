@@ -772,10 +772,11 @@ th.sortable:hover { color:var(--text2); background:var(--s2); }
   .modal-overlay { padding:0; }
   *, *::before, *::after { box-sizing:border-box; word-wrap:break-word; overflow-wrap:break-word; min-width:0; }
 
-  /* Force all nowrap text to wrap on mobile */
+  /* Force all nowrap text to wrap on mobile (exclude th — keep headers on one line in table) */
   .sector-chip, .rating-badge, .entry-flag, .catalyst-date, .action-badge,
   .net-sentiment-label, .net-sentiment-badge, .stale-badge, .refresh-btn,
-  .moat-strength, th { white-space:normal !important; }
+  .moat-strength { white-space:normal !important; }
+  #watchlistTable th { white-space:nowrap !important; }
 
   /* ── PAGE HEADER ── */
   .page-header { flex-direction:column; gap:10px; padding:12px 12px 10px; align-items:stretch; }
@@ -975,25 +976,28 @@ th.sortable:hover { color:var(--text2); background:var(--s2); }
   .sq-pill { font-size:10px; }
 
   /* ── MOBILE TABLE: hide less critical columns for readability ── */
-  /* Hide: Name(2), Sector(3), Priority(4), Report Px(6), Δ vs Report(8), Entry Price(11) */
+  /* Column order: 1-Ticker 2-Name 3-Rating 4-Priority 5-SQ/Dis 6-Px 7-Day 8-1W 9-1M 10-5M 11-52W 12-Target 13-Upside 14-Sector 15-Updated */
+  /* Hide: Name(2), Priority(4), 1W(8), 5M(10), 52W(11), Sector(14), Updated(15) */
   #watchlistTable th:nth-child(2),
   #watchlistTable td:nth-child(2),
-  #watchlistTable th:nth-child(3),
-  #watchlistTable td:nth-child(3),
   #watchlistTable th:nth-child(4),
   #watchlistTable td:nth-child(4),
-  #watchlistTable th:nth-child(7),
-  #watchlistTable td:nth-child(7),
-  #watchlistTable th:nth-child(9),
-  #watchlistTable td:nth-child(9),
-  #watchlistTable th:nth-child(12),
-  #watchlistTable td:nth-child(12) { display:none; }
+  #watchlistTable th:nth-child(8),
+  #watchlistTable td:nth-child(8),
+  #watchlistTable th:nth-child(10),
+  #watchlistTable td:nth-child(10),
+  #watchlistTable th:nth-child(11),
+  #watchlistTable td:nth-child(11),
+  #watchlistTable th:nth-child(14),
+  #watchlistTable td:nth-child(14),
+  #watchlistTable th:nth-child(15),
+  #watchlistTable td:nth-child(15) { display:none; }
 
-  /* Remaining visible: Ticker | Rating | SQ/Dis | Live Px | PW Target | Upside | vs Entry | Open */
-  table { min-width:auto !important; width:100%; }
-  .table-wrap { overflow-x:hidden; }
-  th { padding:7px 5px; }
-  td { padding:8px 5px; }
+  /* Remaining visible: Ticker | Rating | SQ/Dis | Px | Day | 1M | Target | Upside */
+  table { min-width:480px !important; width:100%; }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  th { padding:7px 5px; font-size:8px; }
+  td { padding:8px 5px; font-size:11px; }
 
   /* Ticker column gets more breathing room */
   #watchlistTable td:first-child { padding-left:8px; }
