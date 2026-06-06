@@ -16,7 +16,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRowYEHwV
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVP_R5LQlIwnFk08gAya3ClBErxSuELZ3meQrCJkuvSTl-m-_bEy_gfVxktdHw3kX0/exec';
 
 // Sheet column letters (A=first column). Set these to match your Google Sheet layout.
-const SHEET_COLS = { price: 'F', chgDay: 'R', chgWeek: 'T', chgMonth: 'U', chg5m: 'W' };
+const SHEET_COLS = { price: 'F', chgDay: 'G', chgWeek: 'T', chgMonth: 'U', chg5m: 'W' };
 
 /* ── STOCK DEFINITIONS ───────────────────────────────────────────
    sqScore / dislocationScore  = current (updated) values
@@ -1323,7 +1323,7 @@ async function refreshAllPrices() {
       if (v === undefined || v === null || v === '') return null;
       const s = String(v);
       if (/loading|error|n\/a/i.test(s)) return null;
-      const n = parseFloat(s.replace(/[,$\s]/g, '').replace('%', ''));
+      const n = parseFloat(s.replace(/[−–]/g, '-').replace(/[,$\s]/g, '').replace('%', ''));
       if (isNaN(n)) return null;
       let result;
       if (s.includes('%')) result = n;
